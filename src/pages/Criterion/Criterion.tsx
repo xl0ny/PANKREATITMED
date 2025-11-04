@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Container, Row, Col, Spinner, Alert } from "react-bootstrap";
 import type { Criterion } from "../../types/criterion";
 import { getCriterion } from "../../api/criterion";
-// import "./Criterion.css";
+import "./Criterion.css";
 
 const defaultImage = "/no-image.png";
 
@@ -31,24 +31,24 @@ const CriterionPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container className="text-center mt-5">
+      <div className="criterion-loading">
         <Spinner animation="border" />
-      </Container>
+      </div>
     );
   }
 
   if (error || !criterion) {
     return (
-      <Container className="text-center mt-5">
+      <div className="criterion-error">
         <Alert variant="danger">{error || "Критерий не найден"}</Alert>
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container className="criterion-page mt-4">
-      <Row className="align-items-start">
-        <Col md={7}>
+    <div className="criterion-page">
+      <div className="criterion-container">
+        <div className="criterion-text">
           <h2 className="criterion-title">{criterion.name}</h2>
           <p className="criterion-duration">{criterion.duration}</p>
           {criterion.home_visit && (
@@ -58,21 +58,21 @@ const CriterionPage: React.FC = () => {
 
           <div className="criterion-ref">
             Критерий:{" "}
-            <span className="criterion-ref-value text-danger">
+            <span className="criterion-ref-value">
               &gt; {criterion.ref_high} {criterion.unit}
             </span>
           </div>
-        </Col>
+        </div>
 
-        <Col md={5} className="text-center">
+        <div className="criterion-image-wrapper">
           <img
             src={criterion.image_url || defaultImage}
             alt={criterion.name}
-            className="criterion-image img-fluid rounded shadow-sm"
+            className="criterion-image"
           />
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 };
 

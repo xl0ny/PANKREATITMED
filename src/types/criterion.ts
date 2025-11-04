@@ -5,9 +5,9 @@ export interface Criterion {
   description: string;
   duration: string;
   home_visit: boolean;
-  image_url?: string | null;
+  image_url: string | null;
   status: string;
   unit: string;
-  ref_low?: number | null;
-  ref_high?: number | null;
+  ref_low: number | null;
+  ref_high: number | null;
 }

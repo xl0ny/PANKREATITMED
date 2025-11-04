@@ -3,6 +3,7 @@ import Toolbar from "./components//Toolbar/Toolbar";
 import Home from "./pages/Home/Home";
 import Criteria from "./pages/Criteria/Criteria";
 import Criterion from "./pages/Criterion/Criterion";
+import Breadcrumbs from "./components/Breadcrumbs/Breadcrumbs";
 import "./App.css";
 
 const App = () => {
@@ -10,6 +11,7 @@ const App = () => {
     <>
     <div className="app-layout">
         <Toolbar /> {/* Панель будет на всех страницах */}
+        <Breadcrumbs />
         <div className="container mt-4">
           <Routes>
             <Route path="/" element={<Home />} />

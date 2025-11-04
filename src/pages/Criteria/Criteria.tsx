@@ -4,6 +4,7 @@ import CriterionCard from "../../components/CriterionCard/CriterionCard";
 import CriteriaFilters from "../../components/CriteriaFilters/CriteriaFilters";
 import { getCriteria } from "../../api/criteria";
 import type { Criterion } from "../../types/criterion";
+import "./Criteria.css";
 
 const CriteriaPage: React.FC = () => {
   const [query, setQuery] = useState("");

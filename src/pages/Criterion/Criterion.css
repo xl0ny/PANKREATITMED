@@ -1,0 +1,107 @@
+/* Общая страница */
+.criterion-page {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+  width: 100%;
+  color: #222;
+}
+
+/* Контейнер (левая и правая части) */
+.criterion-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  gap: 60px;
+}
+
+/* Левая часть — текст */
+.criterion-text {
+  flex: 1;
+  text-align: left;
+  max-width: 700px;
+}
+
+/* Заголовок */
+.criterion-title {
+  font-weight: 700;
+  font-size: 1.9rem;
+  color: #0b1e27;
+  margin-bottom: 0.3rem;
+}
+
+/* Длительность */
+.criterion-duration {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+/* Выезд на дом */
+.criterion-home {
+  font-size: 0.95rem;
+  color: #4b9c7e;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+/* Описание */
+.criterion-description {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin-bottom: 2rem;
+}
+
+/* Критерий */
+.criterion-ref {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.criterion-ref-value {
+  color: #e85a4f;
+  font-weight: 600;
+}
+
+/* Правая часть — изображение */
+.criterion-image-wrapper {
+  flex-shrink: 0;
+}
+
+.criterion-image {
+  max-width: 400px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Центрирование для loader/error */
+.criterion-loading,
+.criterion-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+}
+
+/* Адаптив */
+@media (max-width: 992px) {
+  .criterion-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .criterion-text {
+    text-align: center;
+  }
+
+  .criterion-image {
+    max-width: 100%;
+  }
+}

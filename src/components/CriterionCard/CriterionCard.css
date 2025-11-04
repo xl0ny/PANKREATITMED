@@ -1,0 +1,87 @@
+/* Общий стиль карточки */
+.criterion-card {
+  border: 1px solid #c3e3eb; /* голубая рамка */
+  border-radius: 0; /* без скруглений */
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  padding: 1rem;
+  text-align: left; /* выравнивание по левому краю */
+  height: 100%;
+  box-shadow: none;
+}
+
+/* Подсветка при наведении */
+.criterion-card:hover {
+  border-color: #3da9c5;
+  background-color: #f9fcfd;
+  transform: translateY(-1px);
+}
+
+/* Код критерия */
+.criterion-card__code {
+  font-size: 0.9rem;
+  color: #3da9c5;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+/* Название критерия */
+.criterion-card__title {
+  font-weight: 700;
+  color: #0b1e27;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Длительность */
+.criterion-card__duration {
+  font-size: 0.9rem;
+  color: #5c6b73;
+  margin: 0;
+}
+
+/* Выезд на дом */
+.criterion-card__home {
+  font-size: 0.9rem;
+  color: #5c6b73;
+  margin-bottom: 1rem;
+}
+
+/* Изображение */
+.criterion-card__img-wrapper {
+  text-align: left;
+  margin: 10px 0;
+}
+
+.criterion-card__img {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+}
+
+/* Значение критерия */
+.criterion-card__ref {
+  font-size: 1rem;
+  color: #e85a4f; /* оранжево-красный акцент */
+  font-weight: 500;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+/* Hover эффект на название */
+.criterion-card:hover .criterion-card__title {
+  color: #3da9c5;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .criterion-card {
+    padding: 1rem;
+  }
+
+  .criterion-card__img {
+    width: 55px;
+    height: 55px;
+  }
+}
