@@ -10,7 +10,7 @@ const Toolbar: React.FC = () => {
 				{/* ЛОГОТИП */}
                 <Navbar.Brand as={Link} to="/" className="toolbar__brand d-flex align-items-center">
                 <img
-                    src="http://127.0.0.1:9000/services-images/pankreatitlogo.png"
+                    src="public/images/logo/Pankreatit Logo.png"
                     alt="PankreatitMed Logo"
                     height="20"
                     className="me-2"

@@ -1,29 +1,52 @@
-import React from "react";
-import { Container, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Carousel, Container } from "react-bootstrap";
 import "./Home.css";
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="home-page">
-      <Container className="text-center mt-5 pt-5">
-        <h1 className="home-title">Добро пожаловать в PankreatitMed</h1>
-        <p className="home-description mt-3">
-          Это система оценки риска панкреатита по критериям Ranson. 
-          Здесь вы можете просматривать медицинские критерии, формировать заявки и анализировать результаты.
-        </p>
-        <Button
-          variant="primary"
-          size="lg"
-          className="mt-4"
-          onClick={() => navigate("/criteria")}
-        >
-          Перейти к критериям
-        </Button>
-      </Container>
-    </div>
+    <Container className="home-page text-center mt-4">
+      <h1 className="home-title">Добро пожаловать в PankreatitMed</h1>
+      <p className="home-subtitle">
+        Система оценки риска панкреатита по критериям Ranson
+      </p>
+
+      <Carousel className="home-carousel mt-4">
+        <Carousel.Item>
+          <img
+            className="d-block w-100 rounded"
+            src="src/assets/carousel/Diagnostique.webp"
+            alt="Диагностика"
+          />
+          <Carousel.Caption>
+            <h5>Точная диагностика</h5>
+            <p>Система оценки тяжести панкреатита по 11 критериям</p>
+          </Carousel.Caption>
+        </Carousel.Item>
+
+        <Carousel.Item>
+          <img
+            className="d-block w-100 rounded"
+            src="src/assets/carousel/Criteria.jpg"
+            alt="Критерии"
+          />
+          <Carousel.Caption>
+            <h5>Простая визуализация</h5>
+            <p>Просматривайте и анализируйте критерии в удобной форме</p>
+          </Carousel.Caption>
+        </Carousel.Item>
+
+        <Carousel.Item>
+          <img
+            className="d-block w-100 rounded"
+            src="src/assets/carousel/Analysis.jpg"
+            alt="Анализ"
+          />
+          <Carousel.Caption>
+            <h5>Мгновенные результаты</h5>
+            <p>Получайте оценку состояния пациента в пару кликов</p>
+          </Carousel.Caption>
+        </Carousel.Item>
+      </Carousel>
+    </Container>
   );
 };
 

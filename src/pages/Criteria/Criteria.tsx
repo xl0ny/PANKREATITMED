@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Row, Col, Spinner, Alert } from "react-bootstrap";
 import CriterionCard from "../../components/CriterionCard/CriterionCard";
 import CriteriaFilters from "../../components/CriteriaFilters/CriteriaFilters";
+import CartButton from "../../components/CartButton/CartButton";
 import { getCriteria } from "../../api/criteria";
 import type { Criterion } from "../../types/criterion";
 import "./Criteria.css";
@@ -45,6 +46,8 @@ const CriteriaPage: React.FC = () => {
           </Col>
         ))}
       </Row>
+      {/* Cart button fixed to bottom-left */}
+      <CartButton />
     </div>
   );
 };
