@@ -5,6 +5,7 @@
   margin-top: 80px;
   width: 100%;
   color: #222;
+  padding: 0 20px 60px;
 }
 
 /* Контейнер (левая и правая части) */
@@ -14,7 +15,7 @@
   align-items: flex-start;
   width: 100%;
   max-width: 1200px;
-  gap: 60px;
+  gap: 48px;
 }
 
 /* Левая часть — текст */
@@ -70,14 +71,16 @@
 /* Правая часть — изображение */
 .criterion-image-wrapper {
   flex-shrink: 0;
+  width: 100%;
+  max-width: 420px;
 }
 
 .criterion-image {
-  max-width: 400px;
+  width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* Центрирование для loader/error */
@@ -90,18 +93,36 @@
 }
 
 /* Адаптив */
-@media (max-width: 992px) {
+/* <=1024px: переводим блоки в одну колонку для планшетов (требование ЛР6) */
+@media (max-width: 1024px) {
   .criterion-container {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 30px;
   }
 
   .criterion-text {
-    text-align: center;
+    text-align: left;
   }
 
-  .criterion-image {
+  .criterion-image-wrapper {
     max-width: 100%;
+  }
+}
+
+/* <=576px: уменьшаем шрифты и отступы, чтобы текст не “кричал” на телефонах */
+@media (max-width: 576px) {
+  .criterion-page {
+    margin-top: 60px;
+    padding: 0 14px 40px;
+  }
+
+  .criterion-title {
+    font-size: 1.5rem;
+  }
+
+  .criterion-description {
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 }

@@ -1,9 +1,9 @@
 /* Главная страница */
 .home-page {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   text-align: center;
-  padding-top: 2rem;
+  padding: 3rem 1.5rem 2rem;
 }
 
 /* Заголовок */
@@ -24,22 +24,33 @@
 /* Заменяем и объединяем правила для .home-carousel */
 .home-carousel {
   width: 100%;
-  max-width: 700px; /* фиксированная максимальная ширина как было раньше */
+  max-width: 700px; /* ≥1200px держим 4:3 блок 700×400 — демонстрация для ЛР6 */
   height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 auto 2rem; /* центрируем по горизонтали и оставляем отступ снизу */
+  margin: 0 auto 2.5rem; /* центрирование для любого экрана */
 }
 
 /* Изображения делаютс¤ отзывчивыми внутри контейнера */
 .home-carousel img {
   width: 100%;
   height: auto;
-  max-height: 400px; /* прежняя высота не превышается */
+  max-height: 400px; /* при широком экране фиксируем прежний 700×400 */
   object-fit: cover;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ≥1200px: фиксируем “учебный” размер 700×400 для демонстрации десктопной сетки */
+@media (min-width: 1200px) {
+  .home-carousel {
+    min-width: 700px;
+  }
+
+  .home-carousel img {
+    height: 400px;
+  }
 }
 
 /* Подписи под слайдами */
@@ -68,10 +79,24 @@
 }
 
 /* Адаптив для мобильных */
+/* <=768px (планшеты/мобильные): увеличиваем паддинги и уменьшаем заголовок */
 @media (max-width: 768px) {
+  .home-page {
+    padding: 2.5rem 1rem 1.5rem;
+  }
+
+  .home-title {
+    font-size: 1.7rem;
+  }
+
+  .home-subtitle {
+    font-size: 1rem;
+  }
+
   .home-carousel img {
-    width: 100%;
+    width: 100%; /* ширина 100% для демонстрации адаптива на защите */
     height: auto;
+    max-height: none;
   }
 
   .carousel-caption h5 {
@@ -80,5 +105,20 @@
 
   .carousel-caption p {
     font-size: 0.85rem;
+  }
+}
+
+/* <=480px (телефоны 320-480px): текст компактнее, карусель без боковых отступов */
+@media (max-width: 480px) {
+  .home-title {
+    font-size: 1.5rem;
+  }
+
+  .home-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .home-carousel {
+    margin-bottom: 2rem;
   }
 }

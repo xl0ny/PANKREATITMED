@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Container, Row, Col, Spinner, Alert } from "react-bootstrap";
+import { Spinner, Alert } from "react-bootstrap";
 import type { Criterion } from "../../types/criterion";
 import { getCriterion } from "../../api/criterion";
+import noImage from "../../assets/no-image.svg";
 import "./Criterion.css";
 
-const defaultImage = "/no-image.png";
+const defaultImage = noImage;
 
 const CriterionPage: React.FC = () => {
   const { id } = useParams();
@@ -47,6 +48,7 @@ const CriterionPage: React.FC = () => {
 
   return (
     <div className="criterion-page">
+      {/* На десктопе блоки идут в 2 колонки, а @media ≤1024px в CSS стекает их в одну (описание для защиты ЛР6) */}
       <div className="criterion-container">
         <div className="criterion-text">
           <h2 className="criterion-title">{criterion.name}</h2>

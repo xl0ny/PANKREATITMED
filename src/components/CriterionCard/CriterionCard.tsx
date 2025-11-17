@@ -2,9 +2,10 @@ import React from "react";
 import { Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import type { Criterion } from "../../types/criterion";
+import noImage from "../../assets/no-image.svg";
 import "./CriterionCard.css";
 
-const defaultImage = "/no-image.png";
+const defaultImage = noImage;
 
 const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
       role="button"
     >
 
-      <Card.Body>
+      <Card.Body className="criterion-card__body">
         <div className="criterion-card__code">{criterion.code}</div>
 
         <Card.Title className="criterion-card__title">

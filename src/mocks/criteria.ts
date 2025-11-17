@@ -1,4 +1,9 @@
 import type { Criterion } from "../types/criterion";
+import n1AgeImg from "../assets/criteria/n1_age.png";
+import n2WbcImg from "../assets/criteria/n2_wbc.png";
+import n3GlucoseImg from "../assets/criteria/n3_glucose.png";
+import n4LdhImg from "../assets/criteria/n4_ldh.png";
+import n5AstImg from "../assets/criteria/n5_ast.png";
 
 export const mockCriteria: Criterion[] = [
   {
@@ -8,7 +13,7 @@ export const mockCriteria: Criterion[] = [
     description: "Возраст > 55 лет — критерий при поступлении.",
     duration: "1 календарный день",
     home_visit: true,
-    image_url: "http://127.0.0.1:9000/services-images/n1_age.png",
+    image_url: n1AgeImg,
     status: "active",
     unit: "лет",
     ref_low: null,
@@ -22,7 +27,7 @@ export const mockCriteria: Criterion[] = [
       "Повышение лейкоцитов может указывать на выраженный воспалительный процесс (критерий: > 16 000/мм³).",
     duration: "1 календарный день",
     home_visit: true,
-    image_url: "http://127.0.0.1:9000/services-images/n2_wbc.png",
+    image_url: n2WbcImg,
     status: "active",
     unit: "/мм³",
     ref_low: null,
@@ -36,7 +41,7 @@ export const mockCriteria: Criterion[] = [
       "Гипергликемия — один из ранних критериев (критерий: > 200 мг/дл ≈ 11,1 ммоль/л).",
     duration: "1 календарный день",
     home_visit: true,
-    image_url: "http://127.0.0.1:9000/services-images/n3_glucose.png",
+    image_url: n3GlucoseImg,
     status: "active",
     unit: "мг/дл",
     ref_low: null,
@@ -49,7 +54,7 @@ export const mockCriteria: Criterion[] = [
     description: "ЛДГ > 350 МЕ/л — критерий тяжести.",
     duration: "1 календарный день",
     home_visit: true,
-    image_url: "http://127.0.0.1:9000/services-images/n4_ldh.png",
+    image_url: n4LdhImg,
     status: "active",
     unit: "Ед/л",
     ref_low: null,
@@ -62,7 +67,7 @@ export const mockCriteria: Criterion[] = [
     description: "АСТ > 250 МЕ/л — критерий тяжести.",
     duration: "1 календарный день",
     home_visit: true,
-    image_url: "http://127.0.0.1:9000/services-images/n5_ast.png",
+    image_url: n5AstImg,
     status: "active",
     unit: "Ед/л",
     ref_low: 0,

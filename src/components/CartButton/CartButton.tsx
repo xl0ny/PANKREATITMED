@@ -9,7 +9,6 @@ import "./CartButton.css";
  */
 const CartButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [draftId, setDraftId] = useState<number | null>(null);
   const [itemCount, setItemCount] = useState(0);
 
   const fetchCart = async () => {
@@ -17,7 +16,6 @@ const CartButton: React.FC = () => {
     try {
       const response = await getDraftOrderId({ auth: true });
       console.log("✅ [getOrderID] Raw backend response:", response);
-      setDraftId(response.pankreatit_order_id);
       setItemCount(response.criteria_amount);
     } catch (e: any) {
       console.error(e);

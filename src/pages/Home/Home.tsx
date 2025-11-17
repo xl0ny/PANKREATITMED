@@ -1,4 +1,7 @@
 import { Carousel, Container } from "react-bootstrap";
+import diagnostiqueImg from "../../assets/carousel/Diagnostique.webp";
+import criteriaImg from "../../assets/carousel/Criteria.jpg";
+import analysisImg from "../../assets/carousel/Analysis.jpg";
 import "./Home.css";
 
 const Home: React.FC = () => {
@@ -13,7 +16,7 @@ const Home: React.FC = () => {
         <Carousel.Item>
           <img
             className="d-block w-100 rounded"
-            src="src/assets/carousel/Diagnostique.webp"
+            src={diagnostiqueImg}
             alt="Диагностика"
           />
           <Carousel.Caption>
@@ -25,7 +28,7 @@ const Home: React.FC = () => {
         <Carousel.Item>
           <img
             className="d-block w-100 rounded"
-            src="src/assets/carousel/Criteria.jpg"
+            src={criteriaImg}
             alt="Критерии"
           />
           <Carousel.Caption>
@@ -37,7 +40,7 @@ const Home: React.FC = () => {
         <Carousel.Item>
           <img
             className="d-block w-100 rounded"
-            src="src/assets/carousel/Analysis.jpg"
+            src={analysisImg}
             alt="Анализ"
           />
           <Carousel.Caption>

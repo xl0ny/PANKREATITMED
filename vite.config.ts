@@ -1,9 +1,46 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+
+const basePath = '/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/'
+const manifest = JSON.parse(
+  readFileSync(
+    fileURLToPath(new URL('./public/manifest.json', import.meta.url)),
+    'utf-8',
+  ),
+)
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  // base нужен для корректного построения путей на GitHub Pages
+  base: basePath,
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      includeAssets: [
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+        'maskable-192.png',
+        'maskable-512.png',
+        'offline.html',
+      ],
+      manifest,
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+      },
+      devOptions: {
+        enabled: true,
+        suppressWarnings: true,
+      },
+    }),
+  ],
   server: {
     proxy: {
       '/api': 'http://localhost:80',

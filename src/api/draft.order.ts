@@ -1,4 +1,5 @@
 import { httpGet } from "./client";
+import { getApiUrl } from "./config";
 
 interface CartResponse {
   pankreatit_order_id: number;
@@ -14,7 +15,7 @@ export async function getDraftOrderId(options?: {
   timeoutMs?: number;
   auth?: boolean;
 }): Promise<CartResponse> {
-  const url = `/api/pankreatitorders/cart`;
+  const url = getApiUrl(`/api/pankreatitorders/cart`);
   return await httpGet<CartResponse>(url, {
     timeoutMs: options?.timeoutMs,
     auth: options?.auth

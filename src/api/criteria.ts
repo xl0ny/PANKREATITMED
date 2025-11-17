@@ -1,4 +1,5 @@
 import { httpGet } from "./client";
+import { getApiUrl } from "./config";
 import type { Criterion } from "../types/criterion";
 import { mockCriteria } from "../mocks/criteria";
 
@@ -10,7 +11,7 @@ export async function getCriteria(q: CriteriaQuery): Promise<Criterion[]> {
   const params = new URLSearchParams();
   if (q.query) params.set("query", q.query);
 
-  const url = `/api/criteria${params.toString() ? "?" + params.toString() : ""}`;
+  const url = getApiUrl(`/api/criteria${params.toString() ? "?" + params.toString() : ""}`);
 
   try {
     // Запрос к реальному API
