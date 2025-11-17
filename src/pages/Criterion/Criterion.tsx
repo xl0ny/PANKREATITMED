@@ -61,7 +61,11 @@ const CriterionPage: React.FC = () => {
           <div className="criterion-ref">
             Критерий:{" "}
             <span className="criterion-ref-value">
-              &gt; {criterion.ref_high} {criterion.unit}
+              {criterion.ref_high !== 0 && criterion.ref_high != null
+              ? `> ${criterion.ref_high} ${criterion.unit}`
+              : criterion.ref_low !== 0 && criterion.ref_low != null
+              ? `< ${criterion.ref_low} ${criterion.unit}`
+              : ""}
             </span>
           </div>
         </div>

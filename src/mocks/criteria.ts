@@ -4,6 +4,12 @@ import n2WbcImg from "../assets/criteria/n2_wbc.png";
 import n3GlucoseImg from "../assets/criteria/n3_glucose.png";
 import n4LdhImg from "../assets/criteria/n4_ldh.png";
 import n5AstImg from "../assets/criteria/n5_ast.png";
+import n6HctImg from "../assets/criteria/n6_hct.png";
+import n7BunImg from "../assets/criteria/n7_bun.png";
+import n8CaImg from "../assets/criteria/n8_ca.png";
+import n9Pao2Img from "../assets/criteria/n9_pao2.png";
+import n10AcidbaseImg from "../assets/criteria/n10_acidbase.png";
+import n11SequestrationImg from "../assets/criteria/n11_sequestration.png";
 
 export const mockCriteria: Criterion[] = [
   {
@@ -17,7 +23,7 @@ export const mockCriteria: Criterion[] = [
     status: "active",
     unit: "лет",
     ref_low: null,
-    ref_high: null,
+    ref_high: 55,
   },
   {
     id: 2,
@@ -31,7 +37,7 @@ export const mockCriteria: Criterion[] = [
     status: "active",
     unit: "/мм³",
     ref_low: null,
-    ref_high: null,
+    ref_high: 16000,
   },
   {
     id: 3,
@@ -45,7 +51,7 @@ export const mockCriteria: Criterion[] = [
     status: "active",
     unit: "мг/дл",
     ref_low: null,
-    ref_high: null,
+    ref_high: 200,
   },
   {
     id: 4,
@@ -58,7 +64,7 @@ export const mockCriteria: Criterion[] = [
     status: "active",
     unit: "Ед/л",
     ref_low: null,
-    ref_high: null,
+    ref_high: 350,
   },
   {
     id: 5,
@@ -71,6 +77,84 @@ export const mockCriteria: Criterion[] = [
     status: "active",
     unit: "Ед/л",
     ref_low: 0,
-    ref_high: 0,
+    ref_high: 250,
+  },
+  {
+    id: 6,
+    code: "№6",
+    name: "Контроль изменения гематокрита",
+    description: "Снижение гематокрита > 10% за 48 часов — неблагоприятный признак.",
+    duration: "1 календарный день через 48 часов",
+    home_visit: true,
+    image_url: n6HctImg,
+    status: "active",
+    unit: "%",
+    ref_low: null,
+    ref_high: 10,
+  },
+  {
+    id: 7,
+    code: "№7",
+    name: "Измерение уровня мочевины (BUN)",
+    description: "Рост мочевины > 5 мг/дл за 48 часов — критерий ухудшения.",
+    duration: "1 календарный день через 48 часов",
+    home_visit: true,
+    image_url: n7BunImg,
+    status: "active",
+    unit: "мг/дл",
+    ref_low: null,
+    ref_high: 5,
+  },
+  {
+    id: 8,
+    code: "№8",
+    name: "Измерение уровня кальция сыворотки",
+    description: "Гипокальциемия (< 8,0 мг/дл ≈ 2,0 ммоль/л) — прогностический критерий.",
+    duration: "1 календарный день",
+    home_visit: true,
+    image_url: n8CaImg,
+    status: "active",
+    unit: "мг/дл",
+    ref_low: 8,
+    ref_high: null,
+  },
+  {
+    id: 9,
+    code: "№9",
+    name: "Измерение PaO₂",
+    description: "PaO₂ < 60 мм рт.ст. — критерий в шкале Рэнсона.",
+    duration: "1 календарный день",
+    home_visit: true,
+    image_url: n9Pao2Img,
+    status: "active",
+    unit: "мм рт.ст.",
+    ref_low: 60,
+    ref_high: null,
+  },
+  {
+    id: 10,
+    code: "№10",
+    name: "Оценка кислотно-щелочного состояния",
+    description: "Дефицит оснований > 4 мЭкв/л — неблагоприятен.",
+    duration: "1 календарный день через 48 часов",
+    home_visit: true,
+    image_url: n10AcidbaseImg,
+    status: "active",
+    unit: "мЭкв/л",
+    ref_low: null,
+    ref_high: 4,
+  },
+  {
+    id: 11,
+    code: "№11",
+    name: "Оценка объёма секвестрированной жидкости",
+    description: "Секвестрированная жидкость > 6 л за 48 часов — высокий риск осложнений.",
+    duration: "1 календарный день через 48 часов",
+    home_visit: true,
+    image_url: n11SequestrationImg,
+    status: "active",
+    unit: "л",
+    ref_low: null,
+    ref_high: 6,
   },
 ];
