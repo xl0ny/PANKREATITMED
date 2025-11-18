@@ -8,7 +8,7 @@ import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategi
 
 declare const self: ServiceWorkerGlobalScope
 
-const BASE_PATH = '/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/'
+const BASE_PATH = '/PANKREATITMED/'
 const OFFLINE_URL = `${BASE_PATH}offline.html`
 
 self.skipWaiting()

@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const basePath = '/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/'
+const basePath = '/PANKREATITMED/'
 const manifest = JSON.parse(
   readFileSync(
     fileURLToPath(new URL('./public/manifest.json', import.meta.url)),

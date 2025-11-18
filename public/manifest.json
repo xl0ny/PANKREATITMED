@@ -5,29 +5,29 @@
   "theme_color": "#0b1e27",
   "background_color": "#ffffff",
   "display": "standalone",
-  "scope": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/",
-  "start_url": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/",
+  "scope": "/PANKREATITMED/",
+  "start_url": "/PANKREATITMED/",
   "icons": [
     {
-      "src": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/pwa-192x192.png",
+      "src": "/PANKREATITMED/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/pwa-512x512.png",
+      "src": "/PANKREATITMED/pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/maskable-192.png",
+      "src": "/PANKREATITMED/maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/BMSTU-RIP-Turskov-E.V.-IU5-56B-FRONT/maskable-512.png",
+      "src": "/PANKREATITMED/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
