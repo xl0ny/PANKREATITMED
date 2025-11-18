@@ -42,8 +42,12 @@ export default defineConfig({
     }),
   ],
   server: {
+    // Allow overriding API proxy target via environment variable when running `vite`.
+    // This is useful when you want to target a backend on your LAN (e.g. http://192.168.x.x:80).
+    // Set VITE_API_BASE_URL before running dev, e.g.:
+    // VITE_API_BASE_URL=http://192.168.1.50:80 npm run dev
     proxy: {
-      '/api': 'http://localhost:80',
+      '/api': process.env.VITE_API_BASE_URL || 'http://localhost:80',
     },
   },
 })
