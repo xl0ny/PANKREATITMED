@@ -7,6 +7,7 @@ import Breadcrumbs from "./components/Breadcrumbs/Breadcrumbs";
 import "./App.css";
 
 const App = () => {
+  console.log(import.meta.env)
   return (
     <>
     <div className="app-layout">
