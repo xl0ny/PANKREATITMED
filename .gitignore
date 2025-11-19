@@ -58,3 +58,7 @@ sketch
 .history
 .ionide
 
+#keys
+*.crt
+*.key
+
