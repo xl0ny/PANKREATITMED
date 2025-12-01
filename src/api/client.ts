@@ -1,8 +1,11 @@
+/**
+ * Базовый HTTP клиент для запросов к API
+ */
 export async function httpGet<T>(
   url: string,
   {
     timeoutMs = 4000,
-    auth = false, // 🔸 новый флаг — нужно ли добавлять JWT
+    auth = false,
   }: { timeoutMs?: number; auth?: boolean } = {}
 ): Promise<T> {
   const ctrl = new AbortController();
@@ -12,10 +15,9 @@ export async function httpGet<T>(
     const headers: Record<string, string> = {};
 
     if (auth) {
-      // const token = localStorage.getItem('token'); // можно заменить на sessionStorage
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIzLCJsb2dpbiI6InByb3N0b0V2Z2VuaXkiLCJpc21vZGVyYXRvciI6ZmFsc2UsImlzcyI6InBhbmtyZWF0aXRtZWQiLCJleHAiOjE3NjI3ODIxNzcsIm5iZiI6MTc2MjY5OTM3NywiaWF0IjoxNzYyNjk5Mzc3fQ.41RqDq5QYQXGbB5-KGyTMfu1D_sN54Z_6HdhSnAiUo4";
+      const token = localStorage.getItem("token");
       if (token) {
-        headers['Authorization'] = `bearer ${token}`;
+        headers["Authorization"] = `bearer ${token}`;
       }
     }
 

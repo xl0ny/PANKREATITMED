@@ -1,6 +1,9 @@
-import React from "react";
-import { Card } from "react-bootstrap";
+import React, { useState } from "react";
+import { Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../store/slices/authSlice";
+import { addToCartAsync } from "../../store/slices/cartSlice";
 import type { Criterion } from "../../types/criterion";
 import noImage from "../../assets/no-image.svg";
 import "./CriterionCard.css";
@@ -9,9 +12,30 @@ const defaultImage = noImage;
 
 const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [adding, setAdding] = useState(false);
 
   const handleClick = () => {
     navigate(`/criteria/${criterion.id}`);
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Предотвращаем клик по карточке
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setAdding(true);
+    try {
+      await dispatch(addToCartAsync(criterion.id) as any);
+    } catch (error) {
+      console.error("Ошибка добавления в заявку:", error);
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
@@ -52,6 +76,18 @@ const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
           ? `< ${criterion.ref_low} ${criterion.unit}`
           : ""}
         </div>
+
+        {isAuthenticated && (
+          <Button
+            variant="primary"
+            size="sm"
+            className="mt-2 w-100"
+            onClick={handleAddToCart}
+            disabled={adding}
+          >
+            {adding ? "Добавление..." : "Добавить"}
+          </Button>
+        )}
       </Card.Body>
     </Card>
   );

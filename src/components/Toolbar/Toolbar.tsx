@@ -1,10 +1,33 @@
 import React from "react";
-import { Navbar, Nav, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { selectIsAuthenticated, selectUser, logout, logoutAsync } from "../../store/slices/authSlice";
+import { clearQuery } from "../../store/slices/filterSlice";
+import { clearCart } from "../../store/slices/cartSlice";
+import { clearOrders } from "../../store/slices/ordersSlice";
 import logoImg from "../../assets/logo/pankreatit-logo.png";
 import "./Toolbar.css";
 
 const Toolbar: React.FC = () => {
+	const dispatch = useDispatch();
+	const navigate = useNavigate();
+	const isAuthenticated = useSelector(selectIsAuthenticated);
+	const user = useSelector(selectUser);
+
+	const handleLogout = async () => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			await dispatch(logoutAsync(token) as any);
+		}
+		// Сбрасываем все состояния
+		dispatch(clearQuery());
+		dispatch(clearCart());
+		dispatch(clearOrders());
+		dispatch(logout());
+		navigate("/");
+	};
+
 	return (
 		<Navbar bg="light" variant="light" expand="lg" className="toolbar">
 			<Container fluid>
@@ -21,9 +44,32 @@ const Toolbar: React.FC = () => {
 				<Navbar.Toggle aria-controls="primary-navbar" />
 				<Navbar.Collapse id="primary-navbar" className="toolbar__collapse ms-auto">
 					{/* КНОПКИ СПРАВА */}
-					<Nav className="ms-auto toolbar__actions">
+					<Nav className="ms-auto toolbar__actions align-items-center">
 						<Nav.Link as={Link} to="/criteria">Критерии</Nav.Link>
-						<Nav.Link as={Link} to="/orders">Заявки</Nav.Link>
+						{isAuthenticated && (
+							<Nav.Link as={Link} to="/orders">Заявки</Nav.Link>
+						)}
+						{isAuthenticated ? (
+							<NavDropdown
+								title={user?.login || "Пользователь"}
+								id="user-dropdown"
+								className="ms-2"
+							>
+								<NavDropdown.Item as={Link} to="/profile">
+									Личный кабинет
+								</NavDropdown.Item>
+								<NavDropdown.Divider />
+								<NavDropdown.Item onClick={handleLogout}>
+									Выход
+								</NavDropdown.Item>
+							</NavDropdown>
+						) : (
+							<Link to="/login" className="ms-2">
+								<Button variant="primary">
+									Вход
+								</Button>
+							</Link>
+						)}
 					</Nav>
 				</Navbar.Collapse>
 			</Container>

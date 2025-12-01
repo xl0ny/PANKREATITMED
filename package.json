@@ -11,10 +11,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "generate-api": "node scripts/generate-api.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.10.1",
+    "axios": "^1.7.9",
     "bootstrap": "^5.3.8",
     "react": "^19.1.1",
     "react-bootstrap": "^2.10.10",
@@ -36,6 +38,7 @@
     "globals": "^16.4.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
+    "swagger-typescript-api": "^13.2.16",
     "vite": "^7.1.7",
     "vite-plugin-mkcert": "^1.17.9",
     "vite-plugin-pwa": "^1.1.0"

@@ -1,0 +1,198 @@
+.order-page {
+  padding: 2rem 0;
+  max-width: 1200px;
+}
+
+.order-header {
+  margin-bottom: 2rem;
+}
+
+.order-title {
+  font-weight: bold;
+  color: #0066cc;
+  font-family: sans-serif;
+  margin-bottom: 1.5rem;
+}
+
+.score-section {
+  margin: 1.5rem 0;
+}
+
+.score-text {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.risk-text {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.patient-selector {
+  max-width: 400px;
+  margin: 1rem auto;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.criteria-list {
+  margin-top: 2rem;
+}
+
+.criterion-card {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.criterion-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+}
+
+.criterion-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  min-width: 30px;
+  text-align: center;
+}
+
+.criterion-main {
+  flex: 1;
+}
+
+.criterion-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.criterion-code {
+  font-weight: bold;
+  color: #666;
+}
+
+.criterion-name {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.criterion-meta {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.criterion-threshold {
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.criterion-input-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.criterion-icon {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.criterion-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: white;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.criterion-value-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.criterion-input {
+  width: 150px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.status-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.status-critical {
+  background-color: #dc3545; /* красный */
+}
+
+.status-normal {
+  background-color: #28a745; /* зеленый */
+}
+
+.criterion-delete {
+  color: #666;
+  text-decoration: none;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.criterion-delete:hover {
+  color: #dc3545;
+}
+
+.criterion-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .criterion-content {
+    flex-direction: column;
+  }
+
+  .criterion-number {
+    align-self: flex-start;
+  }
+
+  .criterion-input-section {
+    flex-wrap: wrap;
+  }
+
+  .criterion-delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

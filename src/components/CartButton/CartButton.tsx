@@ -1,45 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { getDraftOrderId } from "../../api/draft.order";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { fetchCartAsync, selectItemsCount, selectDraftOrderId, selectCartLoading } from "../../store/slices/cartSlice";
+import { selectIsAuthenticated } from "../../store/slices/authSlice";
 import "./CartButton.css";
 
 /**
  * Cart button fixed to bottom-left of the page.
  * Shows number of items in cart.
  * Updates automatically and on click.
+ * Navigates to order page when clicked.
  */
 const CartButton: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [itemCount, setItemCount] = useState(0);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const itemCount = useSelector(selectItemsCount);
+  const draftOrderId = useSelector(selectDraftOrderId);
+  const loading = useSelector(selectCartLoading);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  const fetchCart = async () => {
-    setLoading(true);
-    try {
-      const response = await getDraftOrderId({ auth: true });
-      console.log("✅ [getOrderID] Raw backend response:", response);
-      setItemCount(response.criteria_amount);
-    } catch (e: any) {
-      console.error(e);
-      window.alert(`Ошибка получения данных корзины: ${e?.message || e}`);
-    } finally {
-      setLoading(false);
+  // Загружаем данные корзины при монтировании и если авторизован
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCartAsync() as any);
+    }
+  }, [dispatch, isAuthenticated]);
+
+  const handleClick = () => {
+    if (itemCount > 0 && draftOrderId) {
+      navigate(`/orders/${draftOrderId}`);
+    } else if (isAuthenticated) {
+      // Обновляем данные корзины при клике
+      dispatch(fetchCartAsync() as any);
     }
   };
 
-  // Загружаем данные корзины при монтировании
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  // Не показываем кнопку, если пользователь не авторизован
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <button
       className={`cart-button ${itemCount === 0 ? 'cart-button--empty' : ''}`}
-      onClick={() => itemCount > 0 && fetchCart()}
+      onClick={handleClick}
       disabled={itemCount === 0}
       aria-label={`Корзина${itemCount === 0 ? ' (пуста)' : ''}`}
       title={itemCount === 0 ? 'Корзина пуста' : 'Открыть корзину'}
       type="button"
     >
-      {/* Inline SVG cart icon (fallback if you want to use your own image, replace with an <img/> pointing to your asset) */}
+      {/* Inline SVG cart icon */}
       <svg
         className="cart-button__icon"
         xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +66,7 @@ const CartButton: React.FC = () => {
       </svg>
 
       {loading && <span className="cart-button__loading">…</span>}
-      {/* Optionally show small badge with short id */}
+      {/* Badge with item count */}
       {itemCount > 0 && (
         <span className="cart-button__badge">{itemCount}</span>
       )}

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Spinner, Alert } from "react-bootstrap";
+import { useParams, useNavigate } from "react-router-dom";
+import { Spinner, Alert, Button } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../store/slices/authSlice";
+import { addToCartAsync } from "../../store/slices/cartSlice";
 import type { Criterion } from "../../types/criterion";
 import { getCriterion } from "../../api/criterion";
 import noImage from "../../assets/no-image.svg";
@@ -10,9 +13,13 @@ const defaultImage = noImage;
 
 const CriterionPage: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const [criterion, setCriterion] = useState<Criterion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     const fetchCriterion = async () => {
@@ -29,6 +36,24 @@ const CriterionPage: React.FC = () => {
     };
     fetchCriterion();
   }, [id]);
+
+  const handleAddToCart = async () => {
+    if (!criterion) return;
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setAdding(true);
+    try {
+      await dispatch(addToCartAsync(criterion.id) as any);
+    } catch (error) {
+      console.error("Ошибка добавления в заявку:", error);
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -68,6 +93,17 @@ const CriterionPage: React.FC = () => {
               : ""}
             </span>
           </div>
+
+          {isAuthenticated && (
+            <Button
+              variant="primary"
+              className="mt-3"
+              onClick={handleAddToCart}
+              disabled={adding}
+            >
+              {adding ? "Добавление..." : "Добавить в заявку"}
+            </Button>
+          )}
         </div>
 
         <div className="criterion-image-wrapper">

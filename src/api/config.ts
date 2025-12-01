@@ -9,7 +9,7 @@
  * Если не указан, запросы идут относительно текущего домена
  * (на GitHub Pages это вызовет 404, но сработает fallback на моки)
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 /**
  * Формирует полный URL для API запроса
@@ -18,17 +18,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
  */
 export function getApiUrl(path: string): string {
   // Убираем лишние слэши
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
-  
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
   if (!API_BASE_URL) {
     // В dev-режиме возвращаем относительный путь (прокси Vite обработает)
     // В prod на GitHub Pages это вызовет 404, но сработает fallback на моки
-    return cleanPath
+    return cleanPath;
   }
-  
-  // В prod с указанным API_BASE_URL формируем абсолютный URL
-  // const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
-  // return `${base}${cleanPath}`
-  return `${cleanPath}`
-}
 
+  // В prod с указанным API_BASE_URL формируем абсолютный URL
+  const base = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  return `${base}${cleanPath}`;
+}

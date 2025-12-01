@@ -1,0 +1,21 @@
+.register-page {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.register-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.register-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.register-card .card-body {
+  padding: 2rem;
+}
