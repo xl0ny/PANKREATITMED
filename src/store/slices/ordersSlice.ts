@@ -162,10 +162,14 @@ export const fetchOrderByIdAsync = createAsyncThunk<
         ...item,
         criterion: item.criterion ? {
           ...item.criterion,
+          // Поддерживаем оба формата
           homeVisit: item.criterion.homeVisit ?? item.criterion.home_visit ?? false,
           imageURL: item.criterion.imageURL ?? item.criterion.image_url ?? null,
+          image_url: item.criterion.image_url ?? item.criterion.imageURL ?? null, // Сохраняем оба формата
           refLow: item.criterion.refLow ?? item.criterion.ref_low ?? null,
           refHigh: item.criterion.refHigh ?? item.criterion.ref_high ?? null,
+          ref_low: item.criterion.ref_low ?? item.criterion.refLow ?? null, // Сохраняем оба формата
+          ref_high: item.criterion.ref_high ?? item.criterion.refHigh ?? null, // Сохраняем оба формата
         } : null,
       }));
     }

@@ -102,7 +102,6 @@ const Order: React.FC = () => {
     try {
       await dispatch(formOrderAsync(parseInt(id)) as any);
       // После формирования заявка автоматически обновится через fetchOrderByIdAsync в formOrderAsync
-      // Обновляем вручную для надежности
       await dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
     } catch (error) {
       console.error("Ошибка формирования заявки:", error);
@@ -125,7 +124,7 @@ const Order: React.FC = () => {
     }
   };
 
-  // Определяет статус критерия: красный = превышен порог (1), зеленый = норма (0)
+  // Определяет статус критерия: 1 = входит в референс (красный), 0 = не входит (зеленый)
   const getItemStatus = (item: any) => {
     if (item.value_num === null || item.value_num === undefined) {
       return null; // Нет значения
@@ -140,12 +139,12 @@ const Order: React.FC = () => {
 
     // Проверяем пороговые значения
     if (refHigh !== null && refHigh !== undefined && refHigh > 0) {
-      // Порог "больше чем"
+      // Порог "больше чем" - если значение превышает порог, значит входит (1 красный)
       return item.value_num > refHigh ? 1 : 0;
     }
     
     if (refLow !== null && refLow !== undefined && refLow > 0) {
-      // Порог "меньше чем"
+      // Порог "меньше чем" - если значение меньше порога, значит входит (1 красный)
       return item.value_num < refLow ? 1 : 0;
     }
 
@@ -170,6 +169,29 @@ const Order: React.FC = () => {
     }
     
     return "";
+  };
+
+  // Получает URL изображения критерия, обрабатывая разные форматы
+  const getImageUrl = (criterion: any) => {
+    if (!criterion) return noImage;
+    
+    // Проверяем оба формата: camelCase и snake_case
+    const imageUrl = criterion.imageURL ?? (criterion as any).image_url ?? null;
+    if (!imageUrl) return noImage;
+    
+    // Если это абсолютный URL, возвращаем как есть
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://") || imageUrl.startsWith("//")) {
+      return imageUrl;
+    }
+    
+    // Если это относительный путь, начинающийся с /, возвращаем как есть
+    if (imageUrl.startsWith("/")) {
+      return imageUrl;
+    }
+    
+    // Иначе считаем, что это путь относительно базового URL API
+    // Возвращаем как есть - браузер сам обработает
+    return imageUrl;
   };
 
   if (loading) {
@@ -201,7 +223,7 @@ const Order: React.FC = () => {
         <h2 className="order-title">PANKREATITMED</h2>
         
         {/* Ranson Score и Risk */}
-        <div className="score-section text-center mb-3">
+        <div className="score-section text-center mb-4">
           {order.ranson_score !== null && (
             <>
               <p className="score-text">
@@ -214,13 +236,6 @@ const Order: React.FC = () => {
               )}
             </>
           )}
-        </div>
-
-        {/* Выбор пациента (для будущей реализации) */}
-        <div className="patient-selector mb-4">
-          <Form.Select disabled>
-            <option>Выберете пациента</option>
-          </Form.Select>
         </div>
 
         {/* Действия для черновика */}
@@ -255,89 +270,87 @@ const Order: React.FC = () => {
             const status = getItemStatus(item);
             const currentValue = editingValues[item.id] ?? item.value_num;
             const isSaving = savingItemId === item.id;
+            const imageUrl = getImageUrl(criterion);
 
             return (
-              <Card key={item.id} className="criterion-card mb-3">
-                <Card.Body>
-                  <div className="criterion-content">
-                    {/* Номер позиции */}
-                    <div className="criterion-number">{index + 1}</div>
+              <Card key={item.id} className="order-item-card mb-3">
+                <Card.Body className="order-item-body">
+                  {/* Номер позиции */}
+                  <div className="item-position">{index + 1}</div>
 
-                    {/* Основной контент */}
-                    <div className="criterion-main">
-                      {/* Код и название */}
-                      <div className="criterion-header">
-                        <span className="criterion-code">{criterion?.code || `№${item.criterion_id}`}</span>
-                        <h5 className="criterion-name">{criterion?.name || "Критерий"}</h5>
-                      </div>
+                  {/* Код критерия */}
+                  <div className="item-code">{criterion?.code || `№${item.criterion_id}`}</div>
 
-                      {/* Длительность и доступность */}
-                      <div className="criterion-meta">
-                        <span>{criterion?.duration || "1 календарный день"}</span>
-                        {(criterion?.homeVisit ?? (criterion as any)?.home_visit) && <span> Доступно с выездом на дом</span>}
-                      </div>
+                  {/* Название критерия */}
+                  <div className="item-name">{criterion?.name || "Критерий"}</div>
 
-                      {/* Порог */}
-                      <div className="criterion-threshold">
-                        {formatThreshold(item)}
-                      </div>
+                  {/* Комментарии (длительность и доступность) */}
+                  <div className="item-comments">
+                    <span>{criterion?.duration || "1 календарный день"}</span>
+                    {(criterion?.homeVisit ?? (criterion as any)?.home_visit) && (
+                      <span> Доступно с выездом на дом</span>
+                    )}
+                  </div>
 
-                      {/* Иконка и значение */}
-                      <div className="criterion-input-section">
-                        <div className="criterion-icon">
-                          <img
-                            src={criterion?.imageURL ?? (criterion as any)?.image_url ?? noImage}
-                            alt={criterion?.name || "Критерий"}
-                            className="criterion-image"
-                          />
-                        </div>
+                  {/* Референсное значение */}
+                  <div className="item-threshold">
+                    {formatThreshold(item)}
+                  </div>
 
-                        <div className="criterion-value-group">
-                          <Form.Control
-                            type="number"
-                            step="any"
-                            value={currentValue !== null && currentValue !== undefined ? currentValue : ""}
-                            onChange={(e) => handleValueChange(item.id, e.target.value)}
-                            disabled={!canEdit || isSaving}
-                            placeholder="..."
-                            className="criterion-input"
-                          />
+                  {/* Изображение */}
+                  <div className="item-image">
+                    <img
+                      src={imageUrl}
+                      alt={criterion?.name || "Критерий"}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = noImage;
+                      }}
+                    />
+                  </div>
 
-                          {/* Индикатор статуса */}
-                          {status !== null && (
-                            <div className={`status-indicator status-${status === 1 ? "critical" : "normal"}`}>
-                              {status}
-                            </div>
-                          )}
-
-                          {/* Кнопка сохранения (только для редактируемых) */}
-                          {canEdit && currentValue !== item.value_num && (
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleSaveItem(item.id, item.criterion_id)}
-                              disabled={isSaving}
-                              className="ms-2"
-                            >
-                              {isSaving ? "..." : "Сохранить"}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Кнопка удаления */}
-                    {canEdit && (
+                  {/* Поле ввода значения */}
+                  <div className="item-input">
+                    <Form.Control
+                      type="number"
+                      step="any"
+                      value={currentValue !== null && currentValue !== undefined ? currentValue : ""}
+                      onChange={(e) => handleValueChange(item.id, e.target.value)}
+                      disabled={!canEdit || isSaving}
+                      placeholder="..."
+                    />
+                    {/* Кнопка сохранения появляется при изменении */}
+                    {canEdit && currentValue !== item.value_num && (
                       <Button
-                        variant="link"
-                        onClick={() => handleRemoveItem(item.criterion_id)}
-                        className="criterion-delete"
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleSaveItem(item.id, item.criterion_id)}
                         disabled={isSaving}
+                        className="ms-1"
                       >
-                        🗑️
+                        {isSaving ? "..." : "✓"}
                       </Button>
                     )}
                   </div>
+
+                  {/* Индикатор статуса */}
+                  {status !== null && (
+                    <div className={`item-status status-${status === 1 ? "critical" : "normal"}`}>
+                      {status}
+                    </div>
+                  )}
+
+                  {/* Кнопка удаления */}
+                  {canEdit && (
+                    <Button
+                      variant="link"
+                      onClick={() => handleRemoveItem(item.criterion_id)}
+                      className="item-delete"
+                      disabled={isSaving}
+                      title="Удалить"
+                    >
+                      🗑️
+                    </Button>
+                  )}
                 </Card.Body>
               </Card>
             );
