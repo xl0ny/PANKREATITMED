@@ -43,7 +43,7 @@ export default defineConfig({
         suppressWarnings: true,
       },
     }),
-    mkcert(),
+    // mkcert(),
   ],
   server: {
     // Allow overriding API proxy target via environment variable when running `vite`.
@@ -53,10 +53,10 @@ export default defineConfig({
     proxy: {
       '/api': process.env.VITE_API_BASE_URL || 'http://localhost:80',
     },
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, "cert.key")),
-      cert: fs.readFileSync(path.resolve(__dirname, "cert.crt")),
-    },
+    // https: {
+    //   key: fs.readFileSync(path.resolve(__dirname, "cert.key")),
+    //   cert: fs.readFileSync(path.resolve(__dirname, "cert.crt")),
+    // },
     host: true, // чтобы сервер был доступен с телефона/планшета
     port: 5173
   },
