@@ -23,6 +23,13 @@ const Order: React.FC = () => {
   const loading = useSelector(selectOrdersLoading);
   const error = useSelector(selectOrdersError);
 
+  // Логируем заявку для отладки
+  useEffect(() => {
+    if (order) {
+      console.log("[Order] order object:", order);
+    }
+  }, [order]);
+
   const [editingValues, setEditingValues] = useState<Record<number, number | null>>({});
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -133,9 +140,8 @@ const Order: React.FC = () => {
     const criterion = item.criterion;
     if (!criterion) return null;
 
-    // Поддерживаем оба формата: camelCase и snake_case
-    const refHigh = criterion.refHigh ?? (criterion as any).ref_high;
-    const refLow = criterion.refLow ?? (criterion as any).ref_low;
+    const refHigh = criterion.refHigh;
+    const refLow = criterion.refLow;
 
     // Проверяем пороговые значения
     if (refHigh !== null && refHigh !== undefined && refHigh > 0) {
@@ -155,9 +161,8 @@ const Order: React.FC = () => {
     const criterion = item.criterion;
     if (!criterion) return "";
     
-    // Поддерживаем оба формата: camelCase и snake_case
-    const refHigh = criterion.refHigh ?? (criterion as any).ref_high;
-    const refLow = criterion.refLow ?? (criterion as any).ref_low;
+    const refHigh = criterion.refHigh;
+    const refLow = criterion.refLow;
     const unit = criterion.unit || "";
     
     if (refHigh !== null && refHigh !== undefined && refHigh > 0) {
@@ -171,26 +176,13 @@ const Order: React.FC = () => {
     return "";
   };
 
-  // Получает URL изображения критерия, обрабатывая разные форматы
+  // Получает URL изображения критерия
   const getImageUrl = (criterion: any) => {
     if (!criterion) return noImage;
     
-    // Проверяем оба формата: camelCase и snake_case
-    const imageUrl = criterion.imageURL ?? (criterion as any).image_url ?? null;
+    const imageUrl = criterion.imageURL;
     if (!imageUrl) return noImage;
     
-    // Если это абсолютный URL, возвращаем как есть
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://") || imageUrl.startsWith("//")) {
-      return imageUrl;
-    }
-    
-    // Если это относительный путь, начинающийся с /, возвращаем как есть
-    if (imageUrl.startsWith("/")) {
-      return imageUrl;
-    }
-    
-    // Иначе считаем, что это путь относительно базового URL API
-    // Возвращаем как есть - браузер сам обработает
     return imageUrl;
   };
 
@@ -220,7 +212,7 @@ const Order: React.FC = () => {
   return (
     <Container className="order-page">
       <div className="order-header mb-4">
-        <h2 className="order-title">PANKREATITMED</h2>
+        {/* <h2 className="order-title">PANKREATITMED</h2> */}
         
         {/* Ranson Score и Risk */}
         <div className="score-section text-center mb-4">

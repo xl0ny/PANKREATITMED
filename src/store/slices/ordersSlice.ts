@@ -115,10 +115,32 @@ export const fetchOrdersAsync = createAsyncThunk<
     const orders = Array.isArray(data) ? data : data.items || [];
     
     // Нормализуем каждую заявку: убеждаемся, что criteria всегда массив
-    return orders.map((order: any) => ({
-      ...order,
-      criteria: Array.isArray(order.criteria) ? order.criteria : [],
-    }));
+    return orders.map((order: any) => {
+      // Нормализуем критерии: конвертируем PascalCase из API в camelCase
+      const normalizedCriteria = Array.isArray(order.criteria) 
+        ? order.criteria.map((item: any) => ({
+            ...item,
+            criterion: item.criterion ? {
+              id: item.criterion.ID ?? item.criterion.id,
+              code: item.criterion.Code ?? item.criterion.code,
+              name: item.criterion.Name ?? item.criterion.name,
+              description: item.criterion.Description ?? item.criterion.description,
+              duration: item.criterion.Duration ?? item.criterion.duration,
+              homeVisit: item.criterion.HomeVisit ?? item.criterion.homeVisit ?? item.criterion.home_visit ?? false,
+              imageURL: item.criterion.ImageURL ?? item.criterion.imageURL ?? item.criterion.image_url ?? null,
+              status: item.criterion.Status ?? item.criterion.status,
+              unit: item.criterion.Unit ?? item.criterion.unit,
+              refLow: item.criterion.RefLow ?? item.criterion.refLow ?? item.criterion.ref_low ?? null,
+              refHigh: item.criterion.RefHigh ?? item.criterion.refHigh ?? item.criterion.ref_high ?? null,
+            } : null,
+          }))
+        : [];
+      
+      return {
+        ...order,
+        criteria: normalizedCriteria,
+      };
+    });
   } catch (error: any) {
     return rejectWithValue(error.message || "Ошибка подключения к серверу");
   }
@@ -156,20 +178,22 @@ export const fetchOrderByIdAsync = createAsyncThunk<
       data.criteria = data.criteria || [];
     }
     
-    // Нормализуем критерии: конвертируем snake_case в camelCase для совместимости
+    // Нормализуем критерии: конвертируем PascalCase из API в camelCase
     if (data.criteria && Array.isArray(data.criteria)) {
       data.criteria = data.criteria.map((item: any) => ({
         ...item,
         criterion: item.criterion ? {
-          ...item.criterion,
-          // Поддерживаем оба формата
-          homeVisit: item.criterion.homeVisit ?? item.criterion.home_visit ?? false,
-          imageURL: item.criterion.imageURL ?? item.criterion.image_url ?? null,
-          image_url: item.criterion.image_url ?? item.criterion.imageURL ?? null, // Сохраняем оба формата
-          refLow: item.criterion.refLow ?? item.criterion.ref_low ?? null,
-          refHigh: item.criterion.refHigh ?? item.criterion.ref_high ?? null,
-          ref_low: item.criterion.ref_low ?? item.criterion.refLow ?? null, // Сохраняем оба формата
-          ref_high: item.criterion.ref_high ?? item.criterion.refHigh ?? null, // Сохраняем оба формата
+          id: item.criterion.ID ?? item.criterion.id,
+          code: item.criterion.Code ?? item.criterion.code,
+          name: item.criterion.Name ?? item.criterion.name,
+          description: item.criterion.Description ?? item.criterion.description,
+          duration: item.criterion.Duration ?? item.criterion.duration,
+          homeVisit: item.criterion.HomeVisit ?? item.criterion.homeVisit ?? item.criterion.home_visit ?? false,
+          imageURL: item.criterion.ImageURL ?? item.criterion.imageURL ?? item.criterion.image_url ?? null,
+          status: item.criterion.Status ?? item.criterion.status,
+          unit: item.criterion.Unit ?? item.criterion.unit,
+          refLow: item.criterion.RefLow ?? item.criterion.refLow ?? item.criterion.ref_low ?? null,
+          refHigh: item.criterion.RefHigh ?? item.criterion.refHigh ?? item.criterion.ref_high ?? null,
         } : null,
       }));
     }
