@@ -32,7 +32,7 @@ const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
     try {
       await dispatch(addToCartAsync(criterion.id) as any);
     } catch (error) {
-      console.error("Ошибка добавления в заявку:", error);
+      console.error("Ошибка добавления в заключение:", error);
     } finally {
       setAdding(false);
     }

@@ -80,7 +80,7 @@ const Orders: React.FC = () => {
 
   return (
     <Container className="orders-page">
-      <h2 className="mb-4">Мои заявки</h2>
+      <h2 className="mb-4">Мои заключения</h2>
 
       {/* Фильтры */}
       <Card className="mb-4">
@@ -146,7 +146,7 @@ const Orders: React.FC = () => {
       )}
 
       {!loading && !error && orders.length === 0 && (
-        <Alert variant="info">Заявки не найдены</Alert>
+        <Alert variant="info">Заключения не найдены</Alert>
       )}
 
       {!loading && !error && orders.length > 0 && (

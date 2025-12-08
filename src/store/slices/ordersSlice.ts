@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { apiClient, updateApiToken } from "../../api/apiClient";
 
 /**
  * Интерфейс позиции заявки
@@ -92,27 +93,16 @@ export const fetchOrdersAsync = createAsyncThunk<
   }
 
   try {
-    const params = new URLSearchParams();
-    if (filters.status) params.set("status", filters.status);
-    if (filters.from_date) params.set("from_date", filters.from_date);
-    if (filters.to_date) params.set("to_date", filters.to_date);
-
-    const url = `/api/pankreatitorders${params.toString() ? `?${params.toString()}` : ""}`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
+    updateApiToken(token);
+    const response = await apiClient.pankreatitordersList({
+      status: filters.status,
+      from_date: filters.from_date,
+      to_date: filters.to_date,
     });
 
-    if (!response.ok) {
-      return rejectWithValue("Ошибка получения списка заявок");
-    }
-
-    const data = await response.json();
+    const data = response.data;
     // API может вернуть объект с массивом или сам массив
-    const orders = Array.isArray(data) ? data : data.items || [];
+    const orders = Array.isArray(data) ? data : (data as any)?.items || [];
     
     // Нормализуем каждую заявку: убеждаемся, что criteria всегда массив
     return orders.map((order: any) => {
@@ -142,7 +132,11 @@ export const fetchOrdersAsync = createAsyncThunk<
       };
     });
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -160,27 +154,22 @@ export const fetchOrderByIdAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(`/api/pankreatitorders/${id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
+    updateApiToken(token);
+    const response = await apiClient.id.pankreatitordersDetail({ id });
 
-    if (!response.ok) {
-      return rejectWithValue("Заявка не найдена");
+    const data = response.data;
+    if (!data) {
+      return rejectWithValue("Заключение не найдено");
     }
-
-    const data = await response.json();
     
     // Нормализуем данные: убеждаемся, что criteria всегда массив
-    if (data && !Array.isArray(data.criteria)) {
-      data.criteria = data.criteria || [];
+    if (data && !Array.isArray((data as any).criteria)) {
+      (data as any).criteria = (data as any).criteria || [];
     }
     
     // Нормализуем критерии: конвертируем PascalCase из API в camelCase
-    if (data.criteria && Array.isArray(data.criteria)) {
-      data.criteria = data.criteria.map((item: any) => ({
+    if ((data as any).criteria && Array.isArray((data as any).criteria)) {
+      (data as any).criteria = (data as any).criteria.map((item: any) => ({
         ...item,
         criterion: item.criterion ? {
           id: item.criterion.ID ?? item.criterion.id,
@@ -198,9 +187,13 @@ export const fetchOrderByIdAsync = createAsyncThunk<
       }));
     }
     
-    return data;
+    return data as Order;
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -218,22 +211,17 @@ export const formOrderAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(`/api/pankreatitorders/${id}/form`, {
-      method: "PUT",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Ошибка формирования заявки" }));
-      return rejectWithValue(error.message || "Ошибка формирования заявки");
-    }
+    updateApiToken(token);
+    await apiClient.id.formUpdate({ id });
 
     // Обновляем текущую заявку после формирования (чтобы получить рассчитанный Ranson score)
     await dispatch(fetchOrderByIdAsync(id));
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -251,22 +239,17 @@ export const deleteOrderAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(`/api/pankreatitorders/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Ошибка удаления заявки" }));
-      return rejectWithValue(error.message || "Ошибка удаления заявки");
-    }
+    updateApiToken(token);
+    await apiClient.id.pankreatitordersDelete({ id });
 
     // Обновляем список заявок
     await dispatch(fetchOrdersAsync());
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -284,26 +267,26 @@ export const updateOrderItemAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(
-      `/api/pankreatitorders/items?pankreatit_order_id=${orderId}&criterion_id=${criterionId}`,
+    updateApiToken(token);
+    await apiClient.items.itemsUpdate(
       {
-        method: "PUT",
-        headers: {
-          Authorization: `bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        pankreatit_order_id: orderId,
+        criterion_id: criterionId,
+      },
+      {
+        position: data.position,
+        value_num: data.value_num,
       }
     );
-
-    if (!response.ok) {
-      return rejectWithValue("Ошибка обновления позиции");
-    }
 
     // Обновляем текущую заявку
     await dispatch(fetchOrderByIdAsync(orderId));
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -321,24 +304,20 @@ export const removeOrderItemAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(
-      `/api/pankreatitorders/items?pankreatit_order_id=${orderId}&criterion_id=${criterionId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      return rejectWithValue("Ошибка удаления позиции");
-    }
+    updateApiToken(token);
+    await apiClient.items.itemsDelete({
+      pankreatit_order_id: orderId,
+      criterion_id: criterionId,
+    });
 
     // Обновляем текущую заявку
     await dispatch(fetchOrderByIdAsync(orderId));
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -390,7 +369,7 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrdersAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка получения списка заявок";
+        state.error = action.payload || "Ошибка получения списка заключений";
       });
 
     // Fetch Order By ID
@@ -406,7 +385,7 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrderByIdAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка получения заявки";
+        state.error = action.payload || "Ошибка получения заключения";
       });
 
     // Form Order
@@ -421,7 +400,7 @@ const ordersSlice = createSlice({
       })
       .addCase(formOrderAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка формирования заявки";
+        state.error = action.payload || "Ошибка формирования заключения";
       });
 
     // Delete Order
@@ -436,7 +415,7 @@ const ordersSlice = createSlice({
       })
       .addCase(deleteOrderAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка удаления заявки";
+        state.error = action.payload || "Ошибка удаления заключения";
       });
   },
 });

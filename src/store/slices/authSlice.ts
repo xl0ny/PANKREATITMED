@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiClient, updateApiToken } from "../../api/apiClient";
 
 /**
  * Интерфейс пользователя
@@ -65,22 +66,29 @@ export const loginAsync = createAsyncThunk<
   { rejectValue: string }
 >("auth/login", async (credentials, { rejectWithValue }) => {
   try {
-    const response = await fetch("/api/users/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
+    const response = await apiClient.auth.authLoginCreate(credentials, {
+      secure: false, // Логин не требует авторизации
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Ошибка авторизации" }));
-      return rejectWithValue(error.message || "Неверный логин или пароль");
+    const data = response.data;
+    if (!data) {
+      return rejectWithValue("Неверный логин или пароль");
     }
 
-    return await response.json();
+    // Обновляем токен в API клиенте
+    updateApiToken(data.access_token || null);
+
+    return {
+      access_token: data.access_token || "",
+      token_type: data.token_type || "bearer",
+      expires_in: data.expires_in || 0,
+    };
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -93,22 +101,29 @@ export const registerAsync = createAsyncThunk<
   { rejectValue: string }
 >("auth/register", async (credentials, { rejectWithValue }) => {
   try {
-    const response = await fetch("/api/users/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
+    const response = await apiClient.auth.authRegisterCreate(credentials, {
+      secure: false, // Регистрация не требует авторизации
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Ошибка регистрации" }));
-      return rejectWithValue(error.message || "Ошибка регистрации");
+    const data = response.data;
+    if (!data) {
+      return rejectWithValue("Ошибка регистрации");
     }
 
-    return await response.json();
+    // Обновляем токен в API клиенте
+    updateApiToken(data.access_token || null);
+
+    return {
+      access_token: data.access_token || "",
+      token_type: data.token_type || "bearer",
+      expires_in: data.expires_in || 0,
+    };
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -128,20 +143,27 @@ export const fetchUserAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch("/api/users/me", {
-      method: "GET",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
+    // Обновляем токен в API клиенте перед запросом
+    updateApiToken(token);
 
-    if (!response.ok) {
+    const response = await apiClient.me.getMe();
+
+    const data = response.data;
+    if (!data) {
       return rejectWithValue("Ошибка получения данных пользователя");
     }
 
-    return await response.json();
+    return {
+      id: data.id || 0,
+      login: data.login || "",
+      isModerator: data.is_moderator || false,
+    };
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -154,20 +176,16 @@ export const logoutAsync = createAsyncThunk<
   { rejectValue: string }
 >("auth/logout", async (token) => {
   try {
-    const response = await fetch(`/api/users/auth/logout/${token}`, {
-      method: "POST",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
+    // Обновляем токен в API клиенте перед запросом
+    updateApiToken(token);
 
-    if (!response.ok) {
-      // Даже если ошибка, продолжаем выход локально
-      console.warn("Ошибка при выходе на сервере, но продолжаем локальный выход");
-    }
+    await apiClient.auth.authLogoutCreate({ token });
   } catch (error: any) {
     // Даже при ошибке продолжаем выход локально
     console.warn("Ошибка подключения при выходе, но продолжаем локальный выход");
+  } finally {
+    // Очищаем токен в API клиенте
+    updateApiToken(null);
   }
 });
 
@@ -186,6 +204,7 @@ const authSlice = createSlice({
       if (token) {
         state.token = token;
         state.isAuthenticated = true;
+        updateApiToken(token);
       }
     },
     /**
@@ -197,6 +216,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
+      updateApiToken(null);
     },
     /**
      * Очистка ошибки
@@ -217,6 +237,7 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
         localStorage.setItem("token", action.payload.access_token);
+        updateApiToken(action.payload.access_token);
         state.error = null;
         // Загружаем информацию о пользователе после успешного входа
         // Это будет сделано через fetchUserAsync в компоненте
@@ -238,6 +259,7 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
         localStorage.setItem("token", action.payload.access_token);
+        updateApiToken(action.payload.access_token);
         state.error = null;
       })
       .addCase(registerAsync.rejected, (state, action) => {
@@ -266,6 +288,7 @@ const authSlice = createSlice({
           state.token = null;
           state.isAuthenticated = false;
           state.user = null;
+          updateApiToken(null);
         }
       });
 
@@ -277,6 +300,7 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.error = null;
+        updateApiToken(null);
       });
   },
 });

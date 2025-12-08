@@ -49,7 +49,7 @@ const CriterionPage: React.FC = () => {
     try {
       await dispatch(addToCartAsync(criterion.id) as any);
     } catch (error) {
-      console.error("Ошибка добавления в заявку:", error);
+      console.error("Ошибка добавления в заключение:", error);
     } finally {
       setAdding(false);
     }
@@ -101,7 +101,7 @@ const CriterionPage: React.FC = () => {
               onClick={handleAddToCart}
               disabled={adding}
             >
-              {adding ? "Добавление..." : "Добавить в заявку"}
+              {adding ? "Добавление..." : "Добавить в заключение"}
             </Button>
           )}
         </div>

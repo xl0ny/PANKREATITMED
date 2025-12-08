@@ -47,7 +47,7 @@ const Toolbar: React.FC = () => {
 					<Nav className="ms-auto toolbar__actions align-items-center">
 						<Nav.Link as={Link} to="/criteria">Критерии</Nav.Link>
 						{isAuthenticated && (
-							<Nav.Link as={Link} to="/orders">Заявки</Nav.Link>
+							<Nav.Link as={Link} to="/orders">Заключения</Nav.Link>
 						)}
 						{isAuthenticated ? (
 							<NavDropdown

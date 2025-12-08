@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, Container, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { fetchUserAsync, selectUser, selectAuthLoading, selectAuthError } from "../../store/slices/authSlice";
+import { apiClient, updateApiToken } from "../../api/apiClient";
 import "./Profile.css";
 
 const Profile: React.FC = () => {
@@ -49,25 +50,18 @@ const Profile: React.FC = () => {
     setUpdating(true);
 
     try {
-      const response = await fetch("/api/users/me", {
-        method: "PUT",
-        headers: {
-          Authorization: `bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password }),
-      });
+      updateApiToken(token);
+      await apiClient.me.putMe({ password });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Ошибка обновления пароля" }));
-        setUpdateError(errorData.message || "Ошибка обновления пароля");
-      } else {
-        setUpdateSuccess("Пароль успешно изменен");
-        setPassword("");
-        setConfirmPassword("");
-      }
+      setUpdateSuccess("Пароль успешно изменен");
+      setPassword("");
+      setConfirmPassword("");
     } catch (error: any) {
-      setUpdateError(error.message || "Ошибка подключения к серверу");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Ошибка подключения к серверу";
+      setUpdateError(errorMessage);
     } finally {
       setUpdating(false);
     }

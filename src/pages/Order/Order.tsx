@@ -89,7 +89,7 @@ const Order: React.FC = () => {
   };
 
   const handleRemoveItem = async (criterionId: number) => {
-    if (!id || !window.confirm("Удалить услугу из заявки?")) return;
+    if (!id || !window.confirm("Удалить услугу из заключения?")) return;
 
     await dispatch(
       removeOrderItemAsync({
@@ -103,7 +103,7 @@ const Order: React.FC = () => {
   };
 
   const handleFormOrder = async () => {
-    if (!id || !window.confirm("Подтвердить заявку? После подтверждения редактирование будет недоступно.")) return;
+    if (!id || !window.confirm("Подтвердить заключение? После подтверждения редактирование будет недоступно.")) return;
 
     setFormLoading(true);
     try {
@@ -111,21 +111,21 @@ const Order: React.FC = () => {
       // После формирования заявка автоматически обновится через fetchOrderByIdAsync в formOrderAsync
       await dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
     } catch (error) {
-      console.error("Ошибка формирования заявки:", error);
+      console.error("Ошибка формирования заключения:", error);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDeleteOrder = async () => {
-    if (!id || !window.confirm("Удалить черновик заявки?")) return;
+    if (!id || !window.confirm("Удалить черновик заключения?")) return;
 
     setDeleteLoading(true);
     try {
       await dispatch(deleteOrderAsync(parseInt(id)) as any);
       navigate("/orders");
     } catch (error) {
-      console.error("Ошибка удаления заявки:", error);
+      console.error("Ошибка удаления заключения:", error);
     } finally {
       setDeleteLoading(false);
     }
@@ -199,9 +199,9 @@ const Order: React.FC = () => {
   if (error || !order) {
     return (
       <Container className="order-page">
-        <Alert variant="danger">{error || "Заявка не найдена"}</Alert>
+        <Alert variant="danger">{error || "Заключение не найдено"}</Alert>
         <Button onClick={() => navigate("/orders")} className="mt-3">
-          Вернуться к списку заявок
+          Вернуться к списку заключений
         </Button>
       </Container>
     );
@@ -239,7 +239,7 @@ const Order: React.FC = () => {
               disabled={formLoading || sortedCriteria.length === 0}
               className="me-2"
             >
-              {formLoading ? "Формирование..." : "Подтвердить заявку"}
+              {formLoading ? "Формирование..." : "Подтвердить заключение"}
             </Button>
             <Button
               variant="danger"
@@ -255,7 +255,7 @@ const Order: React.FC = () => {
       {/* Список критериев */}
       <div className="criteria-list">
         {sortedCriteria.length === 0 ? (
-          <Alert variant="info">Заявка пуста</Alert>
+          <Alert variant="info">Заключение пусто</Alert>
         ) : (
           sortedCriteria.map((item, index) => {
             const criterion = item.criterion;
@@ -352,7 +352,7 @@ const Order: React.FC = () => {
 
       <div className="mt-4">
         <Button variant="secondary" onClick={() => navigate("/orders")}>
-          Вернуться к списку заявок
+          Вернуться к списку заключений
         </Button>
       </div>
     </Container>

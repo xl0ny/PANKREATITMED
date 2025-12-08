@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { apiClient, updateApiToken } from "../../api/apiClient";
 
 /**
  * Интерфейс ответа корзины
@@ -50,24 +51,29 @@ export const fetchCartAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch("/api/pankreatitorders/cart", {
-      method: "GET",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
+    updateApiToken(token);
+    const response = await apiClient.cart.cartList();
 
-    if (!response.ok) {
-      // Если 404 - значит корзины нет, это нормально
-      if (response.status === 404) {
-        return { pankreatit_order_id: 0, criteria_amount: 0 };
-      }
-      return rejectWithValue("Ошибка получения данных корзины");
+    const data = response.data;
+    if (!data) {
+      // Если данных нет, значит корзины нет, это нормально
+      return { pankreatit_order_id: 0, criteria_amount: 0 };
     }
 
-    return await response.json();
+    return {
+      pankreatit_order_id: (data as any).pankreatit_order_id || 0,
+      criteria_amount: (data as any).criteria_amount || 0,
+    };
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    // Если 404 - значит корзины нет, это нормально
+    if (error.response?.status === 404) {
+      return { pankreatit_order_id: 0, criteria_amount: 0 };
+    }
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -85,22 +91,17 @@ export const addToCartAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(`/api/criteria/${criterionId}/add-to-draft`, {
-      method: "POST",
-      headers: {
-        Authorization: `bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Ошибка добавления в заявку" }));
-      return rejectWithValue(error.message || "Ошибка добавления услуги в заявку");
-    }
+    updateApiToken(token);
+    await apiClient.id.addToDraftCreate({ id: criterionId });
 
     // Обновляем информацию о корзине
     await dispatch(fetchCartAsync());
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -118,24 +119,20 @@ export const removeFromCartAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(
-      `/api/pankreatitorders/items?pankreatit_order_id=${orderId}&criterion_id=${criterionId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      return rejectWithValue("Ошибка удаления услуги из заявки");
-    }
+    updateApiToken(token);
+    await apiClient.items.itemsDelete({
+      pankreatit_order_id: orderId,
+      criterion_id: criterionId,
+    });
 
     // Обновляем информацию о корзине
     await dispatch(fetchCartAsync());
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -153,26 +150,26 @@ export const updateCartItemAsync = createAsyncThunk<
   }
 
   try {
-    const response = await fetch(
-      `/api/pankreatitorders/items?pankreatit_order_id=${orderId}&criterion_id=${criterionId}`,
+    updateApiToken(token);
+    await apiClient.items.itemsUpdate(
       {
-        method: "PUT",
-        headers: {
-          Authorization: `bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        pankreatit_order_id: orderId,
+        criterion_id: criterionId,
+      },
+      {
+        position: data.position,
+        value_num: data.value_num,
       }
     );
-
-    if (!response.ok) {
-      return rejectWithValue("Ошибка обновления позиции");
-    }
 
     // Обновляем информацию о корзине
     await dispatch(fetchCartAsync());
   } catch (error: any) {
-    return rejectWithValue(error.message || "Ошибка подключения к серверу");
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Ошибка подключения к серверу";
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -231,7 +228,7 @@ const cartSlice = createSlice({
       })
       .addCase(addToCartAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка добавления в заявку";
+        state.error = action.payload || "Ошибка добавления в заключение";
       });
 
     // Remove From Cart
@@ -246,7 +243,7 @@ const cartSlice = createSlice({
       })
       .addCase(removeFromCartAsync.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Ошибка удаления из заявки";
+        state.error = action.payload || "Ошибка удаления из заключения";
       });
 
     // Update Cart Item
