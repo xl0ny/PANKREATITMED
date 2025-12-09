@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Spinner, Alert } from "react-bootstrap";
 import type { Criterion } from "../../types/criterion";
 import { getCriterion } from "../../api/criterion";
+import { mockCriteria } from "../../mocks/criteria";
 import noImage from "../../assets/no-image.svg";
 import "./Criterion.css";
 
@@ -13,14 +14,17 @@ const CriterionPage: React.FC = () => {
   const [criterion, setCriterion] = useState<Criterion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchCriterion = async () => {
       if (!id) return;
       try {
         const data = await getCriterion(id);
-        if (data) setCriterion(data);
-        else setError("Критерий не найден");
+        if (data) {
+          setCriterion(data);
+          setImageError(false); // Сбрасываем ошибку изображения при загрузке нового критерия
+        } else setError("Критерий не найден");
       } catch {
         setError("Ошибка при загрузке данных критерия");
       } finally {
@@ -72,9 +76,16 @@ const CriterionPage: React.FC = () => {
 
         <div className="criterion-image-wrapper">
           <img
-            src={criterion.image_url || defaultImage}
+            src={
+              imageError
+                ? (mockCriteria.find((c) => c.id === criterion.id)?.image_url || defaultImage)
+                : criterion.image_url || defaultImage
+            }
             alt={criterion.name}
             className="criterion-image"
+            onError={() => {
+              setImageError(true);
+            }}
           />
         </div>
       </div>

@@ -2,12 +2,12 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "pankreatitmed-front",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.pankreatitmed.app",
   "build": {
-    "frontendDist": "../build",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeBuildCommand": "VITE_BASE_PATH=/ npm run build"
   },
   "app": {
     "windows": [
@@ -20,6 +20,8 @@
       }
     ],
     "security": {
+      // CORS настройка для Tauri: отключаем CSP для разрешения HTTP-запросов к внешним API
+      // В Tauri приложениях CORS не требуется, так как это десктопное приложение
       "csp": null
     }
   },

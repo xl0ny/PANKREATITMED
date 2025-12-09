@@ -8,7 +8,9 @@ import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategi
 
 declare const self: ServiceWorkerGlobalScope
 
-const BASE_PATH = '/PANKREATITMED/'
+// Определяем base path: для Tauri используем корневой путь, для веба - /PANKREATITMED/
+// В Tauri приложении service worker может не работать, но на всякий случай оставляем поддержку
+const BASE_PATH = self.location.pathname.includes('/PANKREATITMED/') ? '/PANKREATITMED/' : '/'
 const OFFLINE_URL = `${BASE_PATH}offline.html`
 
 self.skipWaiting()

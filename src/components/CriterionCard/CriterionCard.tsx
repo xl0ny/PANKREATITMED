@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import type { Criterion } from "../../types/criterion";
+import { mockCriteria } from "../../mocks/criteria";
 import noImage from "../../assets/no-image.svg";
 import "./CriterionCard.css";
 
@@ -9,6 +10,7 @@ const defaultImage = noImage;
 
 const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
     navigate(`/criteria/${criterion.id}`);
@@ -39,9 +41,16 @@ const CriterionCard: React.FC<{ criterion: Criterion }> = ({ criterion }) => {
         <div className="criterion-card__img-wrapper">
         <Card.Img
           variant="top"
-          src={criterion.image_url || defaultImage}
+          src={
+            imageError
+              ? (mockCriteria.find((c) => c.id === criterion.id)?.image_url || defaultImage)
+              : criterion.image_url || defaultImage
+          }
           alt={criterion.name}
           className="criterion-card__img"
+          onError={() => {
+            setImageError(true);
+          }}
         />
       </div>
 

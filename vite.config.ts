@@ -3,11 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import mkcert from 'vite-plugin-mkcert'
-import fs from "fs"
-import path from "path"
+// import mkcert from 'vite-plugin-mkcert' // Отключено для работы с Tauri
+// import fs from "fs" // Не используется без HTTPS
+// import path from "path" // Не используется без HTTPS
 
-const basePath = '/PANKREATITMED/'
+// Определяем base path: для Tauri используем корневой путь, для веба - /PANKREATITMED/
+// Можно переопределить через переменную окружения VITE_BASE_PATH
+const basePath = process.env.VITE_BASE_PATH || (process.env.TAURI_PLATFORM ? '/' : '/PANKREATITMED/')
 const manifest = JSON.parse(
   readFileSync(
     fileURLToPath(new URL('./public/manifest.json', import.meta.url)),
@@ -18,6 +20,7 @@ const manifest = JSON.parse(
 // https://vite.dev/config/
 export default defineConfig({
   // base нужен для корректного построения путей на GitHub Pages
+  // Для Tauri используем корневой путь
   base: basePath,
   plugins: [
     react(),
@@ -43,7 +46,7 @@ export default defineConfig({
         suppressWarnings: true,
       },
     }),
-    // mkcert(),
+    // mkcert(), // Отключено для работы с Tauri
   ],
   server: {
     // Allow overriding API proxy target via environment variable when running `vite`.
@@ -53,6 +56,7 @@ export default defineConfig({
     proxy: {
       '/api': process.env.VITE_API_BASE_URL || 'http://localhost:80',
     },
+    // HTTPS отключен для работы с Tauri
     // https: {
     //   key: fs.readFileSync(path.resolve(__dirname, "cert.key")),
     //   cert: fs.readFileSync(path.resolve(__dirname, "cert.crt")),
