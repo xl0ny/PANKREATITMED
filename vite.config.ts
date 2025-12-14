@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import mkcert from 'vite-plugin-mkcert'
 import fs from "fs"
 import path from "path"
+import type { Plugin } from 'vite'
 
 const basePath = '/PANKREATITMED/'
 const manifest = JSON.parse(
@@ -15,12 +16,45 @@ const manifest = JSON.parse(
   ),
 )
 
+// Плагин для добавления CORS заголовков, чтобы GitHub Pages мог обращаться к локальному фронтенду
+const corsPlugin = (): Plugin => {
+  return {
+    name: 'cors-plugin',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const origin = req.headers.origin
+        
+        // Разрешаем запросы с GitHub Pages и любых других источников
+        if (origin) {
+          res.setHeader('Access-Control-Allow-Origin', origin)
+        } else {
+          res.setHeader('Access-Control-Allow-Origin', '*')
+        }
+        
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        res.setHeader('Access-Control-Allow-Credentials', 'true')
+        
+        // Обрабатываем preflight запросы
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 200
+          res.end()
+          return
+        }
+        
+        next()
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   // base нужен для корректного построения путей на GitHub Pages
   base: basePath,
   plugins: [
     react(),
+    corsPlugin(), // Плагин для CORS, чтобы GitHub Pages мог обращаться к локальному фронтенду
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',

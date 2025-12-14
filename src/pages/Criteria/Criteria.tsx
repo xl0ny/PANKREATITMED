@@ -4,10 +4,31 @@ import { Row, Col, Spinner, Alert } from "react-bootstrap";
 import CriterionCard from "../../components/CriterionCard/CriterionCard";
 import CriteriaFilters from "../../components/CriteriaFilters/CriteriaFilters";
 import CartButton from "../../components/CartButton/CartButton";
-import { getCriteria } from "../../api/criteria";
+import { apiClient } from "../../api/apiClient";
 import type { Criterion } from "../../types/criterion";
+import type { PankreatitmedInternalAppDtoResponseSendCriterion } from "../../api/Api";
 import { selectQuery } from "../../store/slices/filterSlice";
+import { mockCriteria } from "../../mocks/criteria";
 import "./Criteria.css";
+
+/**
+ * Преобразует ответ API в формат Criterion
+ */
+function mapApiCriterionToCriterion(apiCriterion: PankreatitmedInternalAppDtoResponseSendCriterion): Criterion {
+  return {
+    id: apiCriterion.id || 0,
+    code: apiCriterion.code || "",
+    name: apiCriterion.name || "",
+    description: apiCriterion.description || "",
+    duration: apiCriterion.duration || "",
+    home_visit: apiCriterion.home_visit ?? false,
+    image_url: apiCriterion.image_url || null,
+    status: apiCriterion.status || "",
+    unit: apiCriterion.unit || "",
+    ref_low: apiCriterion.ref_low ?? null,
+    ref_high: apiCriterion.ref_high ?? null,
+  };
+}
 
 /**
  * Страница со списком критериев
@@ -31,11 +52,40 @@ const CriteriaPage: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await getCriteria({}); // без query — грузим всё
-        console.log("✅ [CriteriaPage] Data received on mount:", data);
-        setAllItems(data);
+        // Запрос к реальному API через сгенерированный клиент
+        const response = await apiClient.criteriaList(
+          {},
+          {
+            secure: false, // Список критериев доступен без авторизации
+          }
+        );
+
+        const data = response.data;
+        console.log("✅ [CriteriaPage] Raw backend response:", data);
+
+        // API возвращает объект с полем items или массив
+        let items: PankreatitmedInternalAppDtoResponseSendCriterion[] = [];
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (data && typeof data === "object" && (data as any).items) {
+          items = (data as any).items;
+        } else if (data && typeof data === "object" && (data as any).criteria) {
+          // Если структура ответа содержит criteria
+          items = (data as any).criteria;
+        }
+
+        if (Array.isArray(items) && items.length > 0) {
+          const normalized = items.map(mapApiCriterionToCriterion);
+          console.log("✅ [CriteriaPage] Data received on mount:", normalized);
+          setAllItems(normalized);
+        } else {
+          throw new Error("Некорректный формат ответа от API /api/criteria");
+        }
       } catch (e: any) {
-        setError(e?.message || "Ошибка загрузки");
+        console.warn("Ошибка загрузки критериев, используем mock данные:", e);
+        // Если бэк не доступен — fallback на mock
+        setAllItems(mockCriteria);
+        setError(undefined);
       } finally {
         setLoading(false);
       }

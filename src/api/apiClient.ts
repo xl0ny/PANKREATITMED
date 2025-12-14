@@ -32,7 +32,7 @@ const securityWorker = async (
  * - В prod: можно указать через VITE_API_BASE_URL
  */
 const httpClient = new HttpClient({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "",
+  baseURL: "/api",
   securityWorker,
   secure: true, // По умолчанию все запросы требуют авторизацию
 });

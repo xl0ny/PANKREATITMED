@@ -4,10 +4,31 @@ import { Spinner, Alert, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../store/slices/authSlice";
 import { addToCartAsync } from "../../store/slices/cartSlice";
+import { apiClient } from "../../api/apiClient";
 import type { Criterion } from "../../types/criterion";
-import { getCriterion } from "../../api/criterion";
+import type { PankreatitmedInternalAppDtoResponseSendCriterion } from "../../api/Api";
+import { mockCriteria } from "../../mocks/criteria";
 import noImage from "../../assets/no-image.svg";
 import "./Criterion.css";
+
+/**
+ * Преобразует ответ API в формат Criterion
+ */
+function mapApiCriterionToCriterion(apiCriterion: PankreatitmedInternalAppDtoResponseSendCriterion): Criterion {
+  return {
+    id: apiCriterion.id || 0,
+    code: apiCriterion.code || "",
+    name: apiCriterion.name || "",
+    description: apiCriterion.description || "",
+    duration: apiCriterion.duration || "",
+    home_visit: apiCriterion.home_visit ?? false,
+    image_url: apiCriterion.image_url || null,
+    status: apiCriterion.status || "",
+    unit: apiCriterion.unit || "",
+    ref_low: apiCriterion.ref_low ?? null,
+    ref_high: apiCriterion.ref_high ?? null,
+  };
+}
 
 const defaultImage = noImage;
 
@@ -25,11 +46,29 @@ const CriterionPage: React.FC = () => {
     const fetchCriterion = async () => {
       if (!id) return;
       try {
-        const data = await getCriterion(id);
-        if (data) setCriterion(data);
-        else setError("Критерий не найден");
-      } catch {
-        setError("Ошибка при загрузке данных критерия");
+        const response = await apiClient.id.criteriaDetail(
+          { id: parseInt(id) },
+          {
+            secure: false, // Детали критерия доступны без авторизации
+          }
+        );
+
+        const data = response.data;
+        if (!data) {
+          throw new Error("Критерий не найден");
+        }
+
+        const normalized = mapApiCriterionToCriterion(data);
+        setCriterion(normalized);
+      } catch (error) {
+        console.warn("Ошибка загрузки критерия, используем mock данные:", error);
+        // Если сервер не доступен — fallback на mock
+        const mock = mockCriteria.find((c) => String(c.id) === id);
+        if (mock) {
+          setCriterion(mock);
+        } else {
+          setError("Критерий не найден");
+        }
       } finally {
         setLoading(false);
       }
