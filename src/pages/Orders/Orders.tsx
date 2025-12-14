@@ -12,6 +12,63 @@ import {
 } from "../../store/slices/ordersSlice";
 import "./Orders.css";
 
+// Функция для форматирования даты в российский формат DD.MM.YYYY
+const formatDateToRU = (date: Date): string => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+};
+
+// Функция для преобразования даты из формата DD.MM.YYYY в YYYY-MM-DD
+const parseDateFromRU = (dateString: string): string => {
+  const parts = dateString.split(".");
+  if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+    const [day, month, year] = parts;
+    // Проверяем валидность даты
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (date.getFullYear() === parseInt(year) && 
+        date.getMonth() === parseInt(month) - 1 && 
+        date.getDate() === parseInt(day)) {
+      return `${year}-${month}-${day}`;
+    }
+  }
+  // Если дата неполная или невалидная, возвращаем пустую строку
+  return "";
+};
+
+// Функция для получения сегодняшней даты в формате DD.MM.YYYY
+const getTodayRU = (): string => {
+  return formatDateToRU(new Date());
+};
+
+// Функция для получения сегодняшней даты в формате YYYY-MM-DD (для API)
+const getTodayISO = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Функция для форматирования ввода даты с автоматической вставкой точек
+const formatDateInput = (value: string): string => {
+  // Удаляем все нецифровые символы
+  const digits = value.replace(/\D/g, "");
+  
+  // Ограничиваем длину до 8 цифр (ДДММГГГГ)
+  const limitedDigits = digits.slice(0, 8);
+  
+  // Форматируем с точками
+  if (limitedDigits.length <= 2) {
+    return limitedDigits;
+  } else if (limitedDigits.length <= 4) {
+    return `${limitedDigits.slice(0, 2)}.${limitedDigits.slice(2)}`;
+  } else {
+    return `${limitedDigits.slice(0, 2)}.${limitedDigits.slice(2, 4)}.${limitedDigits.slice(4)}`;
+  }
+};
+
 const Orders: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,23 +77,59 @@ const Orders: React.FC = () => {
   const error = useSelector(selectOrdersError);
   const filters = useSelector(selectOrderFilters);
 
+  // Инициализируем: "Дата с" пустая, "Дата по" - сегодняшняя дата
+  const getInitialFromDate = (): string => {
+    if (filters.from_date) {
+      // Если есть фильтр, преобразуем из ISO в RU формат
+      const date = new Date(filters.from_date);
+      return formatDateToRU(date);
+    }
+    return ""; // Пустое по умолчанию
+  };
+
+  const getInitialToDate = (): string => {
+    if (filters.to_date) {
+      // Если есть фильтр, преобразуем из ISO в RU формат
+      const date = new Date(filters.to_date);
+      return formatDateToRU(date);
+    }
+    return getTodayRU(); // Сегодняшняя дата по умолчанию
+  };
+
   const [statusFilter, setStatusFilter] = useState<string>(filters.status || "");
-  const [fromDate, setFromDate] = useState<string>(filters.from_date || "");
-  const [toDate, setToDate] = useState<string>(filters.to_date || "");
+  const [fromDate, setFromDate] = useState<string>(getInitialFromDate());
+  const [toDate, setToDate] = useState<string>(getInitialToDate());
 
   useEffect(() => {
-    dispatch(fetchOrdersAsync(filters) as any);
+    // При первой загрузке, если нет фильтров, применяем фильтр только с сегодняшней датой в "Дата по"
+    if (!filters.from_date && !filters.to_date && !filters.status) {
+      const todayISO = getTodayISO();
+      const initialFilters = {
+        to_date: `${todayISO}T00:00:00`,
+      };
+      dispatch(setFilters(initialFilters));
+      dispatch(fetchOrdersAsync(initialFilters) as any);
+    } else {
+      dispatch(fetchOrdersAsync(filters) as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const handleFilter = () => {
     const newFilters: any = {};
     if (statusFilter) newFilters.status = statusFilter;
-    // Форматируем даты в ISO формат: YYYY-MM-DDTHH:mm:ss
-    if (fromDate) {
-      newFilters.from_date = `${fromDate}T00:00:00`;
+    // Форматируем даты из российского формата в ISO формат: YYYY-MM-DDTHH:mm:ss
+    if (fromDate && fromDate.length === 10) {
+      const isoDate = parseDateFromRU(fromDate);
+      if (isoDate) {
+        newFilters.from_date = `${isoDate}T00:00:00`;
+      }
     }
-    if (toDate) {
-      newFilters.to_date = `${toDate}T00:00:00`;
+    if (toDate && toDate.length === 10) {
+      const isoDate = parseDateFromRU(toDate);
+      if (isoDate) {
+        newFilters.to_date = `${isoDate}T00:00:00`;
+      }
     }
     
     dispatch(setFilters(newFilters));
@@ -45,10 +138,15 @@ const Orders: React.FC = () => {
 
   const handleReset = () => {
     setStatusFilter("");
-    setFromDate("");
-    setToDate("");
-    dispatch(setFilters({}));
-    dispatch(fetchOrdersAsync() as any);
+    setFromDate(""); // Пустое значение
+    const todayRU = getTodayRU();
+    setToDate(todayRU); // Сегодняшняя дата
+    const todayISO = getTodayISO();
+    const resetFilters = {
+      to_date: `${todayISO}T00:00:00`,
+    };
+    dispatch(setFilters(resetFilters));
+    dispatch(fetchOrdersAsync(resetFilters) as any);
   };
 
   const getStatusLabel = (status: string) => {
@@ -78,9 +176,48 @@ const Orders: React.FC = () => {
     return new Date(dateString).toLocaleDateString("ru-RU");
   };
 
+  // Находим последнюю завершенную заявку
+  const getLastCompletedOrder = () => {
+    const completedOrders = orders.filter(order => order.status === "completed");
+    if (completedOrders.length === 0) return null;
+    
+    // Сортируем по дате завершения (finished_at) или дате формирования (formed_at), если finished_at нет
+    const sorted = completedOrders.sort((a, b) => {
+      const dateA = a.finished_at || a.formed_at || "";
+      const dateB = b.finished_at || b.formed_at || "";
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
+    
+    return sorted[0];
+  };
+
+  const lastCompletedOrder = getLastCompletedOrder();
+
   return (
     <Container className="orders-page">
       <h2 className="mb-4">Мои заключения</h2>
+
+      {/* Балл по шкале Рэнсона из последней завершенной заявки */}
+      {lastCompletedOrder && lastCompletedOrder.ranson_score !== null && (
+        <div className="text-center mb-2">
+          <p className="score-text" style={{ fontSize: "1.1rem" }}>
+            Ваш текущий балл по шкале Рэнсона - <strong>{lastCompletedOrder.ranson_score}</strong>
+          </p>
+        </div>
+      )}
+
+      {/* Летальный исход из последней завершенной заявки */}
+      {lastCompletedOrder && lastCompletedOrder.mortality_risk && (
+        <div className="text-center mb-4">
+          <p className="risk-text" style={{ fontSize: "1.1rem" }}>
+            Летальный исход - <strong>
+              {lastCompletedOrder.mortality_risk.endsWith("%") 
+                ? lastCompletedOrder.mortality_risk 
+                : `${lastCompletedOrder.mortality_risk}%`}
+            </strong>
+          </p>
+        </div>
+      )}
 
       {/* Фильтры */}
       <Card className="mb-4">
@@ -105,9 +242,15 @@ const Orders: React.FC = () => {
               <Form.Group>
                 <Form.Label>Дата с</Form.Label>
                 <Form.Control
-                  type="date"
+                  type="text"
+                  placeholder="ДД.ММ.ГГГГ"
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    setFromDate(formatted);
+                  }}
+                  pattern="\d{2}\.\d{2}\.\d{4}"
+                  title="Формат: ДД.ММ.ГГГГ (например, 15.12.2025)"
                 />
               </Form.Group>
             </Col>
@@ -115,9 +258,15 @@ const Orders: React.FC = () => {
               <Form.Group>
                 <Form.Label>Дата по</Form.Label>
                 <Form.Control
-                  type="date"
+                  type="text"
+                  placeholder="ДД.ММ.ГГГГ"
                   value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    setToDate(formatted);
+                  }}
+                  pattern="\d{2}\.\d{2}\.\d{4}"
+                  title="Формат: ДД.ММ.ГГГГ (например, 15.12.2025)"
                 />
               </Form.Group>
             </Col>

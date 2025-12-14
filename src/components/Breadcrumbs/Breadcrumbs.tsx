@@ -4,6 +4,7 @@ import "./Breadcrumbs.css";
 const routeNames: Record<string, string> = {
   "": "Главная",
   "criteria": "Критерии",
+  "orders": "Заключения",
 };
 
 const Breadcrumbs: React.FC = () => {
