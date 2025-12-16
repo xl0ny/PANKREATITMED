@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Container, Table, Spinner, Alert, Form, Button, Row, Col, Card } from "react-bootstrap";
@@ -9,7 +9,10 @@ import {
   selectOrdersError,
   selectOrderFilters,
   setFilters,
+  updateOrderStatusAsync,
 } from "../../store/slices/ordersSlice";
+import { selectUser } from "../../store/slices/authSlice";
+import { apiClient, updateApiToken } from "../../api/apiClient";
 import "./Orders.css";
 
 // Функция для форматирования даты в российский формат DD.MM.YYYY
@@ -76,6 +79,8 @@ const Orders: React.FC = () => {
   const loading = useSelector(selectOrdersLoading);
   const error = useSelector(selectOrdersError);
   const filters = useSelector(selectOrderFilters);
+  const user = useSelector(selectUser);
+  const isModerator = user?.isModerator || false;
 
   // Инициализируем: "Дата с" пустая, "Дата по" - сегодняшняя дата
   const getInitialFromDate = (): string => {
@@ -99,7 +104,32 @@ const Orders: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>(filters.status || "");
   const [fromDate, setFromDate] = useState<string>(getInitialFromDate());
   const [toDate, setToDate] = useState<string>(getInitialToDate());
+  const [creatorFilter, setCreatorFilter] = useState<string>("");
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialLoadRef = useRef(true);
+  // Локальная копия данных для плавного обновления без скачков
+  const [localOrders, setLocalOrders] = useState<any[]>([]);
+  const ordersRef = useRef<any[]>([]);
 
+  const prevLoadingRef = useRef(loading);
+  
+  // Синхронизируем локальное состояние с Redux состоянием (только после завершения загрузки через Redux)
+  useEffect(() => {
+    // Обновляем локальное состояние из Redux только когда:
+    // 1. Первая загрузка (localOrders пустое)
+    // 2. Загрузка завершилась (loading изменился с true на false) - это означает ручное обновление/применение фильтров
+    const loadingFinished = prevLoadingRef.current && !loading;
+    
+    if (localOrders.length === 0 || loadingFinished) {
+      setLocalOrders(orders);
+      ordersRef.current = orders;
+    }
+    
+    prevLoadingRef.current = loading;
+  }, [orders, loading, localOrders.length]);
+
+  // Первоначальная загрузка данных
   useEffect(() => {
     // При первой загрузке, если нет фильтров, применяем фильтр только с сегодняшней датой в "Дата по"
     if (!filters.from_date && !filters.to_date && !filters.status) {
@@ -112,8 +142,106 @@ const Orders: React.FC = () => {
     } else {
       dispatch(fetchOrdersAsync(filters) as any);
     }
+    isInitialLoadRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
+
+  // Short polling для обновления статусов (работает всегда)
+  // Используем ref для хранения актуальных фильтров и флага активности
+  const filtersRef = useRef(filters);
+  const isPollingActiveRef = useRef(true);
+  
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
+  // Short polling для обновления данных (обновляет только локальное состояние, минуя Redux)
+  useEffect(() => {
+    isPollingActiveRef.current = true;
+    
+    const fetchData = async () => {
+      if (!isPollingActiveRef.current) return;
+      
+      try {
+        // Получаем токен и обновляем его в API клиенте
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        
+        updateApiToken(token);
+        
+        // Делаем запрос напрямую к API, минуя Redux
+        const response = await apiClient.pankreatitordersList({
+          status: filtersRef.current.status,
+          from_date: filtersRef.current.from_date,
+          to_date: filtersRef.current.to_date,
+        });
+
+        const data = response.data;
+        const newOrders = Array.isArray(data) ? data : (data as any)?.items || [];
+        
+        // Нормализуем данные так же, как в Redux slice
+        const normalizedOrders = newOrders.map((order: any) => {
+          const normalizedCriteria = Array.isArray(order.criteria) 
+            ? order.criteria.map((item: any) => ({
+                ...item,
+                criterion: item.criterion ? {
+                  id: item.criterion.ID ?? item.criterion.id,
+                  code: item.criterion.Code ?? item.criterion.code,
+                  name: item.criterion.Name ?? item.criterion.name,
+                  description: item.criterion.Description ?? item.criterion.description,
+                  duration: item.criterion.Duration ?? item.criterion.duration,
+                  homeVisit: item.criterion.HomeVisit ?? item.criterion.homeVisit ?? item.criterion.home_visit ?? false,
+                  imageURL: item.criterion.ImageURL ?? item.criterion.imageURL ?? item.criterion.image_url ?? null,
+                  status: item.criterion.Status ?? item.criterion.status,
+                  unit: item.criterion.Unit ?? item.criterion.unit,
+                  refLow: item.criterion.RefLow ?? item.criterion.refLow ?? item.criterion.ref_low ?? null,
+                  refHigh: item.criterion.RefHigh ?? item.criterion.refHigh ?? item.criterion.ref_high ?? null,
+                } : null,
+              }))
+            : [];
+          
+          return {
+            ...order,
+            criteria: normalizedCriteria,
+          };
+        });
+        
+        // Обновляем локальное состояние напрямую, без Redux
+        // Это не вызовет полную перерисовку компонента
+        requestAnimationFrame(() => {
+          setLocalOrders(normalizedOrders);
+          ordersRef.current = normalizedOrders;
+        });
+      } catch (error) {
+        // Игнорируем ошибки при polling, чтобы не мешать пользователю
+        console.warn("Ошибка при обновлении данных через polling:", error);
+      }
+      
+      // Перезапускаем таймер после выполнения запроса, если polling еще активен
+      if (isPollingActiveRef.current) {
+        pollingTimeoutRef.current = setTimeout(fetchData, 2000);
+      }
+    };
+
+    // Запускаем первый запрос через 2 секунды (только если не первая загрузка)
+    if (!isInitialLoadRef.current) {
+      pollingTimeoutRef.current = setTimeout(fetchData, 2000);
+    } else {
+      // Для первой загрузки запускаем polling после небольшой задержки
+      pollingTimeoutRef.current = setTimeout(() => {
+        isInitialLoadRef.current = false;
+        pollingTimeoutRef.current = setTimeout(fetchData, 2000);
+      }, 1000);
+    }
+    
+    return () => {
+      isPollingActiveRef.current = false;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleFilter = () => {
     const newFilters: any = {};
@@ -139,6 +267,7 @@ const Orders: React.FC = () => {
   const handleReset = () => {
     setStatusFilter("");
     setFromDate(""); // Пустое значение
+    setCreatorFilter(""); // Сброс фильтра по создателю
     const todayRU = getTodayRU();
     setToDate(todayRU); // Сегодняшняя дата
     const todayISO = getTodayISO();
@@ -147,6 +276,27 @@ const Orders: React.FC = () => {
     };
     dispatch(setFilters(resetFilters));
     dispatch(fetchOrdersAsync(resetFilters) as any);
+  };
+
+  const handleStatusChange = async (orderId: number, status: "complete" | "reject") => {
+    setUpdatingStatusId(orderId);
+    try {
+      console.log(`[handleStatusChange] Изменение статуса заявки ${orderId} на ${status}`);
+      const result = await dispatch(updateOrderStatusAsync({ id: orderId, status }) as any);
+      
+      // Проверяем, была ли ошибка
+      if (updateOrderStatusAsync.rejected.match(result)) {
+        const errorMessage = result.payload || "Ошибка изменения статуса";
+        alert(`Ошибка: ${errorMessage}`);
+      } else {
+        console.log(`[handleStatusChange] Статус успешно изменен`);
+      }
+    } catch (error: any) {
+      console.error("Ошибка изменения статуса:", error);
+      alert(`Ошибка: ${error.message || "Неизвестная ошибка"}`);
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -177,8 +327,8 @@ const Orders: React.FC = () => {
   };
 
   // Находим последнюю завершенную заявку
-  const getLastCompletedOrder = () => {
-    const completedOrders = orders.filter(order => order.status === "completed");
+  const lastCompletedOrder = useMemo(() => {
+    const completedOrders = localOrders.filter(order => order.status === "completed");
     if (completedOrders.length === 0) return null;
     
     // Сортируем по дате завершения (finished_at) или дате формирования (formed_at), если finished_at нет
@@ -189,16 +339,34 @@ const Orders: React.FC = () => {
     });
     
     return sorted[0];
-  };
+  }, [localOrders]);
 
-  const lastCompletedOrder = getLastCompletedOrder();
+  // Получаем уникальные creator_id из загруженных заявок
+  const uniqueCreators = useMemo(() => {
+    const creatorIds = new Set<number>();
+    localOrders.forEach((order) => {
+      if (order.creator_id) {
+        creatorIds.add(order.creator_id);
+      }
+    });
+    return Array.from(creatorIds).sort((a, b) => a - b);
+  }, [localOrders]);
+
+  // Фильтрация заявок по создателю на фронтенде
+  const filteredOrders = useMemo(() => {
+    if (!creatorFilter || creatorFilter === "") {
+      return localOrders;
+    }
+    const creatorId = parseInt(creatorFilter);
+    return localOrders.filter((order) => order.creator_id === creatorId);
+  }, [localOrders, creatorFilter]);
 
   return (
     <Container className="orders-page">
-      <h2 className="mb-4">Мои заключения</h2>
+      <h2 className="mb-4">{isModerator ? "Все заключения" : "Мои заключения"}</h2>
 
-      {/* Балл по шкале Рэнсона из последней завершенной заявки */}
-      {lastCompletedOrder && lastCompletedOrder.ranson_score !== null && (
+      {/* Балл по шкале Рэнсона из последней завершенной заявки (только для обычных пользователей) */}
+      {!isModerator && lastCompletedOrder && lastCompletedOrder.ranson_score !== null && (
         <div className="text-center mb-2">
           <p className="score-text" style={{ fontSize: "1.1rem" }}>
             Ваш текущий балл по шкале Рэнсона - <strong>{lastCompletedOrder.ranson_score}</strong>
@@ -206,8 +374,8 @@ const Orders: React.FC = () => {
         </div>
       )}
 
-      {/* Летальный исход из последней завершенной заявки */}
-      {lastCompletedOrder && lastCompletedOrder.mortality_risk && (
+      {/* Летальный исход из последней завершенной заявки (только для обычных пользователей) */}
+      {!isModerator && lastCompletedOrder && lastCompletedOrder.mortality_risk && (
         <div className="text-center mb-4">
           <p className="risk-text" style={{ fontSize: "1.1rem" }}>
             Летальный исход - <strong>
@@ -223,7 +391,7 @@ const Orders: React.FC = () => {
       <Card className="mb-4">
         <Card.Body>
           <Row>
-            <Col md={3}>
+            <Col md={isModerator ? 2 : 3}>
               <Form.Group>
                 <Form.Label>Статус</Form.Label>
                 <Form.Select
@@ -238,7 +406,25 @@ const Orders: React.FC = () => {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={3}>
+            {isModerator && (
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label>Создатель</Form.Label>
+                  <Form.Select
+                    value={creatorFilter}
+                    onChange={(e) => setCreatorFilter(e.target.value)}
+                  >
+                    <option value="">Все создатели</option>
+                    {uniqueCreators.map((creatorId) => (
+                      <option key={creatorId} value={creatorId.toString()}>
+                        ID: {creatorId}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            )}
+            <Col md={isModerator ? 2 : 3}>
               <Form.Group>
                 <Form.Label>Дата с</Form.Label>
                 <Form.Control
@@ -254,7 +440,7 @@ const Orders: React.FC = () => {
                 />
               </Form.Group>
             </Col>
-            <Col md={3}>
+            <Col md={isModerator ? 2 : 3}>
               <Form.Group>
                 <Form.Label>Дата по</Form.Label>
                 <Form.Control
@@ -270,7 +456,7 @@ const Orders: React.FC = () => {
                 />
               </Form.Group>
             </Col>
-            <Col md={3} className="d-flex align-items-end">
+            <Col md={isModerator ? 2 : 3} className="d-flex align-items-end">
               <div>
                 <Button variant="primary" onClick={handleFilter} className="me-2">
                   Применить
@@ -284,7 +470,7 @@ const Orders: React.FC = () => {
         </Card.Body>
       </Card>
 
-      {loading && (
+      {loading && isInitialLoadRef.current && (
         <div className="text-center">
           <Spinner animation="border" />
         </div>
@@ -294,27 +480,30 @@ const Orders: React.FC = () => {
         <Alert variant="danger">{error}</Alert>
       )}
 
-      {!loading && !error && orders.length === 0 && (
+      {!loading && !error && filteredOrders.length === 0 && (
         <Alert variant="info">Заключения не найдены</Alert>
       )}
 
-      {!loading && !error && orders.length > 0 && (
+      {!loading && !error && filteredOrders.length > 0 && (
         <Table striped bordered hover responsive>
           <thead>
             <tr>
               <th>ID</th>
+              {isModerator && <th>Создатель</th>}
               <th>Статус</th>
               <th>Дата формирования</th>
               <th>Дата завершения</th>
               <th>Ranson Score</th>
               <th>Риск летальности</th>
               <th>Действия</th>
+              {isModerator && <th>Действия модератора</th>}
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <tr key={order.id}>
                 <td>{order.id}</td>
+                {isModerator && <td>ID: {order.creator_id}</td>}
                 <td>
                   <span className={`badge bg-${getStatusVariant(order.status)}`}>
                     {getStatusLabel(order.status)}
@@ -333,6 +522,40 @@ const Orders: React.FC = () => {
                     Просмотр
                   </Button>
                 </td>
+                {isModerator && (
+                  <td>
+                    {order.status === "formed" ? (
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={() => handleStatusChange(order.id, "complete")}
+                          disabled={updatingStatusId === order.id}
+                        >
+                          {updatingStatusId === order.id ? (
+                            <Spinner animation="border" size="sm" />
+                          ) : (
+                            "Завершить"
+                          )}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleStatusChange(order.id, "reject")}
+                          disabled={updatingStatusId === order.id}
+                        >
+                          {updatingStatusId === order.id ? (
+                            <Spinner animation="border" size="sm" />
+                          ) : (
+                            "Отклонить"
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

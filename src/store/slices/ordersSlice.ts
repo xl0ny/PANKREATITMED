@@ -322,6 +322,63 @@ export const removeOrderItemAsync = createAsyncThunk<
 });
 
 /**
+ * Async thunk для изменения статуса заявки (модератор)
+ */
+export const updateOrderStatusAsync = createAsyncThunk<
+  void,
+  { id: number; status: "complete" | "reject" },
+  { rejectValue: string }
+>("orders/updateOrderStatus", async ({ id, status }, { rejectWithValue, dispatch, getState }) => {
+  const token = getToken();
+  if (!token) {
+    return rejectWithValue("Требуется авторизация");
+  }
+
+  try {
+    updateApiToken(token);
+    
+    // API ожидает "completed" или "rejected" (с окончанием -ed)
+    const apiStatus = status === "complete" ? "completed" : "rejected";
+    
+    console.log(`[updateOrderStatusAsync] Отправка запроса: id=${id}, status=${apiStatus}`);
+    
+    const response = await apiClient.id.putId({ id, status: apiStatus });
+    
+    console.log(`[updateOrderStatusAsync] Ответ получен:`, response);
+    
+    // Проверяем ответ
+    if (!response) {
+      return rejectWithValue("Пустой ответ от сервера");
+    }
+
+    // Обновляем список заявок с текущими фильтрами
+    const state = getState() as { orders: OrdersState };
+    await dispatch(fetchOrdersAsync(state.orders.filters));
+  } catch (error: any) {
+    console.error("Ошибка при изменении статуса заявки:", error);
+    console.error("Детали ошибки:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    
+    let errorMessage = "Ошибка подключения к серверу";
+    
+    if (error.response) {
+      // Показываем реальное сообщение от сервера без дополнительных пояснений
+      errorMessage = error.response.data?.message || 
+                    error.response.data?.detail || 
+                    error.response.data?.error ||
+                    `Ошибка сервера: ${error.response.status}`;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return rejectWithValue(errorMessage);
+  }
+});
+
+/**
  * Redux slice для заявок
  */
 const ordersSlice = createSlice({
@@ -416,6 +473,21 @@ const ordersSlice = createSlice({
       .addCase(deleteOrderAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка удаления заключения";
+      });
+
+    // Update Order Status
+    builder
+      .addCase(updateOrderStatusAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateOrderStatusAsync.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(updateOrderStatusAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Ошибка изменения статуса заключения";
       });
   },
 });
