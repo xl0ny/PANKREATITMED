@@ -3,32 +3,32 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, Spinner, Alert, Button, Form, Card } from "react-bootstrap";
 import {
-  fetchOrderByIdAsync,
-  selectCurrentOrder,
-  selectOrdersLoading,
-  selectOrdersError,
-  formOrderAsync,
-  deleteOrderAsync,
-  updateOrderItemAsync,
-  removeOrderItemAsync,
-} from "../../store/slices/ordersSlice";
+  fetchPankreatitOrderByIdAsync,
+  selectCurrentPankreatitOrder,
+  selectPankreatitOrdersLoading,
+  selectPankreatitOrdersError,
+  formPankreatitOrderAsync,
+  deletePankreatitOrderAsync,
+  updatePankreatitOrderItemAsync,
+  removePankreatitOrderItemAsync,
+} from "../../store/slices/pankreatitordersSlice";
 import noImage from "../../assets/no-image.svg";
-import "./Order.css";
+import "./PankreatitOrder.css";
 
-const Order: React.FC = () => {
+const PankreatitOrder: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const order = useSelector(selectCurrentOrder);
-  const loading = useSelector(selectOrdersLoading);
-  const error = useSelector(selectOrdersError);
+  const pankreatitorder = useSelector(selectCurrentPankreatitOrder);
+  const loading = useSelector(selectPankreatitOrdersLoading);
+  const error = useSelector(selectPankreatitOrdersError);
 
   // Логируем заявку для отладки
   useEffect(() => {
-    if (order) {
-      console.log("[Order] order object:", order);
+    if (pankreatitorder) {
+      console.log("[PankreatitOrder] pankreatitorder object:", pankreatitorder);
     }
-  }, [order]);
+  }, [pankreatitorder]);
 
   const [editingValues, setEditingValues] = useState<Record<number, number | null>>({});
   const [formLoading, setFormLoading] = useState(false);
@@ -37,23 +37,23 @@ const Order: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
+      dispatch(fetchPankreatitOrderByIdAsync(parseInt(id)) as any);
     }
   }, [dispatch, id]);
 
-  const isDraft = order?.status === "draft";
+  const isDraft = pankreatitorder?.status === "draft";
   const canEdit = isDraft;
 
   // Инициализируем значения для редактирования
   useEffect(() => {
-    if (order?.criteria) {
+    if (pankreatitorder?.criteria) {
       const initialValues: Record<number, number | null> = {};
-      order.criteria.forEach((item) => {
+      pankreatitorder.criteria.forEach((item) => {
         initialValues[item.id] = item.value_num;
       });
       setEditingValues(initialValues);
     }
-  }, [order]);
+  }, [pankreatitorder]);
 
   const handleValueChange = (itemId: number, value: string) => {
     setEditingValues((prev) => ({
@@ -70,7 +70,7 @@ const Order: React.FC = () => {
 
     try {
       await dispatch(
-        updateOrderItemAsync({
+        updatePankreatitOrderItemAsync({
           orderId: parseInt(id),
           criterionId,
           data: {
@@ -80,7 +80,7 @@ const Order: React.FC = () => {
       );
       
       // Обновляем заявку после изменения
-      await dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
+      await dispatch(fetchPankreatitOrderByIdAsync(parseInt(id)) as any);
     } catch (error) {
       console.error("Ошибка сохранения:", error);
     } finally {
@@ -92,14 +92,14 @@ const Order: React.FC = () => {
     if (!id || !window.confirm("Удалить услугу из заключения?")) return;
 
     await dispatch(
-      removeOrderItemAsync({
+      removePankreatitOrderItemAsync({
         orderId: parseInt(id),
         criterionId,
       }) as any
     );
     
     // Обновляем заявку после удаления
-    await dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
+    await dispatch(fetchPankreatitOrderByIdAsync(parseInt(id)) as any);
   };
 
   const handleFormOrder = async () => {
@@ -107,9 +107,9 @@ const Order: React.FC = () => {
 
     setFormLoading(true);
     try {
-      await dispatch(formOrderAsync(parseInt(id)) as any);
-      // После формирования заявка автоматически обновится через fetchOrderByIdAsync в formOrderAsync
-      await dispatch(fetchOrderByIdAsync(parseInt(id)) as any);
+      await dispatch(formPankreatitOrderAsync(parseInt(id)) as any);
+      // После формирования заявка автоматически обновится через fetchPankreatitOrderByIdAsync в formPankreatitOrderAsync
+      await dispatch(fetchPankreatitOrderByIdAsync(parseInt(id)) as any);
     } catch (error) {
       console.error("Ошибка формирования заключения:", error);
     } finally {
@@ -122,8 +122,8 @@ const Order: React.FC = () => {
 
     setDeleteLoading(true);
     try {
-      await dispatch(deleteOrderAsync(parseInt(id)) as any);
-      navigate("/orders");
+      await dispatch(deletePankreatitOrderAsync(parseInt(id)) as any);
+      navigate("/pankreatitorders");
     } catch (error) {
       console.error("Ошибка удаления заключения:", error);
     } finally {
@@ -188,7 +188,7 @@ const Order: React.FC = () => {
 
   if (loading) {
     return (
-      <Container className="order-page">
+      <Container className="pankreatitorder-page">
         <div className="text-center">
           <Spinner animation="border" />
         </div>
@@ -196,34 +196,34 @@ const Order: React.FC = () => {
     );
   }
 
-  if (error || !order) {
+  if (error || !pankreatitorder) {
     return (
-      <Container className="order-page">
+      <Container className="pankreatitorder-page">
         <Alert variant="danger">{error || "Заключение не найдено"}</Alert>
-        <Button onClick={() => navigate("/orders")} className="mt-3">
+        <Button onClick={() => navigate("/pankreatitorders")} className="mt-3">
           Вернуться к списку заключений
         </Button>
       </Container>
     );
   }
 
-  const sortedCriteria = [...(order.criteria || [])].sort((a, b) => (a.position || 0) - (b.position || 0));
+  const sortedCriteria = [...(pankreatitorder.criteria || [])].sort((a, b) => (a.position || 0) - (b.position || 0));
 
   return (
-    <Container className="order-page">
-      <div className="order-header mb-4">
-        {/* <h2 className="order-title">PANKREATITMED</h2> */}
+    <Container className="pankreatitorder-page">
+      <div className="pankreatitorder-header mb-4">
+        {/* <h2 className="pankreatitorder-title">PANKREATITMED</h2> */}
         
         {/* Ranson Score и Risk */}
         <div className="score-section text-center mb-4">
-          {order.ranson_score !== null && (
+          {pankreatitorder.ranson_score !== null && (
             <>
               <p className="score-text">
-                Ваш бал по шкале Рэнсона - <strong>{order.ranson_score}</strong>
+                Ваш бал по шкале Рэнсона - <strong>{pankreatitorder.ranson_score}</strong>
               </p>
-              {order.mortality_risk && (
+              {pankreatitorder.mortality_risk && (
                 <p className="risk-text">
-                  Летальный исход - <strong>{order.mortality_risk}</strong>
+                  Летальный исход - <strong>{pankreatitorder.mortality_risk}</strong>
                 </p>
               )}
             </>
@@ -232,7 +232,7 @@ const Order: React.FC = () => {
 
         {/* Действия для черновика */}
         {isDraft && (
-          <div className="order-actions mb-4">
+          <div className="pankreatitorder-actions mb-4">
             <Button
               variant="success"
               onClick={handleFormOrder}
@@ -265,8 +265,8 @@ const Order: React.FC = () => {
             const imageUrl = getImageUrl(criterion);
 
             return (
-              <Card key={item.id} className="order-item-card mb-3">
-                <Card.Body className="order-item-body">
+              <Card key={item.id} className="pankreatitorder-item-card mb-3">
+                <Card.Body className="pankreatitorder-item-body">
                   {/* Номер позиции */}
                   <div className="item-position">{index + 1}</div>
 
@@ -351,7 +351,7 @@ const Order: React.FC = () => {
       </div>
 
       <div className="mt-4">
-        <Button variant="secondary" onClick={() => navigate("/orders")}>
+        <Button variant="secondary" onClick={() => navigate("/pankreatitorders")}>
           Вернуться к списку заключений
         </Button>
       </div>
@@ -359,4 +359,4 @@ const Order: React.FC = () => {
   );
 };
 
-export default Order;
+export default PankreatitOrder;

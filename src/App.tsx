@@ -8,8 +8,8 @@ import Criterion from "./pages/Criterion/Criterion";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Profile from "./pages/Profile/Profile";
-import Orders from "./pages/Orders/Orders";
-import Order from "./pages/Order/Order";
+import PankreatitOrders from "./pages/PankreatitOrders/PankreatitOrders";
+import PankreatitOrder from "./pages/PankreatitOrder/PankreatitOrder";
 import Breadcrumbs from "./components/Breadcrumbs/Breadcrumbs";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { fetchUserAsync, selectToken } from "./store/slices/authSlice";
@@ -50,18 +50,18 @@ const App = () => {
               }
             />
             <Route
-              path="/orders"
+              path="/pankreatitorders"
               element={
                 <ProtectedRoute>
-                  <Orders />
+                  <PankreatitOrders />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/orders/:id"
+              path="/pankreatitorders/:id"
               element={
                 <ProtectedRoute>
-                  <Order />
+                  <PankreatitOrder />
                 </ProtectedRoute>
               }
             />

@@ -28,7 +28,7 @@ const CartButton: React.FC = () => {
 
   const handleClick = () => {
     if (itemCount > 0 && draftOrderId) {
-      navigate(`/orders/${draftOrderId}`);
+      navigate(`/pankreatitorders/${draftOrderId}`);
     } else if (isAuthenticated) {
       // Обновляем данные корзины при клике
       dispatch(fetchCartAsync() as any);

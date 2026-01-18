@@ -1,13 +1,13 @@
-.order-page {
+.pankreatitorder-page {
   padding: 2rem 0;
   max-width: 1400px;
 }
 
-.order-header {
+.pankreatitorder-header {
   margin-bottom: 2rem;
 }
 
-.order-title {
+.pankreatitorder-title {
   font-weight: bold;
   color: #0066cc;
   font-family: sans-serif;
@@ -29,7 +29,7 @@
   color: #666;
 }
 
-.order-actions {
+.pankreatitorder-actions {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
@@ -41,7 +41,7 @@
 }
 
 /* Карточка элемента заявки - горизонтальная компоновка как на фото */
-.order-item-card {
+.pankreatitorder-item-card {
   background-color: #ffffff;
   border: 1px solid #c3e3eb;
   border-radius: 0;
@@ -50,12 +50,12 @@
   transition: all 0.2s ease-in-out;
 }
 
-.order-item-card:hover {
+.pankreatitorder-item-card:hover {
   border-color: #3da9c5;
   background-color: #f9fcfd;
 }
 
-.order-item-body {
+.pankreatitorder-item-body {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -191,7 +191,7 @@
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 1200px) {
-  .order-item-body {
+  .pankreatitorder-item-body {
     flex-wrap: wrap;
   }
   
@@ -203,7 +203,7 @@
 }
 
 @media (max-width: 768px) {
-  .order-item-body {
+  .pankreatitorder-item-body {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -225,7 +225,7 @@
     right: 1rem;
   }
   
-  .order-item-card {
+  .pankreatitorder-item-card {
     position: relative;
   }
 }

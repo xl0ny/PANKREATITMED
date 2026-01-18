@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated, selectUser, logout, logoutAsync } from "../../store/slices/authSlice";
 import { clearQuery } from "../../store/slices/filterSlice";
 import { clearCart } from "../../store/slices/cartSlice";
-import { clearOrders } from "../../store/slices/ordersSlice";
+import { clearPankreatitOrders } from "../../store/slices/pankreatitordersSlice";
 import logoImg from "../../assets/logo/pankreatit-logo.png";
 import "./Toolbar.css";
 
@@ -23,7 +23,7 @@ const Toolbar: React.FC = () => {
 		// Сбрасываем все состояния
 		dispatch(clearQuery());
 		dispatch(clearCart());
-		dispatch(clearOrders());
+		dispatch(clearPankreatitOrders());
 		dispatch(logout());
 		navigate("/");
 	};
@@ -47,7 +47,7 @@ const Toolbar: React.FC = () => {
 					<Nav className="ms-auto toolbar__actions align-items-center">
 						<Nav.Link as={Link} to="/criteria">Критерии</Nav.Link>
 						{isAuthenticated && (
-							<Nav.Link as={Link} to="/orders">Заключения</Nav.Link>
+							<Nav.Link as={Link} to="/pankreatitorders">Заключения</Nav.Link>
 						)}
 						{isAuthenticated ? (
 							<NavDropdown

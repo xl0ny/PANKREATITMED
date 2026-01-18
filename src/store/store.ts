@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import filterReducer from "./slices/filterSlice";
 import authReducer from "./slices/authSlice";
-import ordersReducer from "./slices/ordersSlice";
+import pankreatitordersReducer from "./slices/pankreatitordersSlice";
 import cartReducer from "./slices/cartSlice";
 
 /**
@@ -26,7 +26,7 @@ export const store = configureStore({
     // Авторизация и пользователь
     auth: authReducer,
     // Заявки
-    orders: ordersReducer,
+    pankreatitorders: pankreatitordersReducer,
     // Корзина (черновик заявки)
     cart: cartReducer,
   },

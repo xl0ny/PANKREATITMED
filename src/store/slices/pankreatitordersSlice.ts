@@ -5,7 +5,7 @@ import { apiClient, updateApiToken } from "../../api/apiClient";
 /**
  * Интерфейс позиции заявки
  */
-interface OrderItem {
+interface PankreatitOrderItem {
   id: number;
   criterion_id: number;
   position: number;
@@ -29,7 +29,7 @@ interface OrderItem {
 /**
  * Интерфейс заявки
  */
-interface Order {
+interface PankreatitOrder {
   id: number;
   creator_id: number;
   moderator_id: number | null;
@@ -38,13 +38,13 @@ interface Order {
   finished_at: string | null;
   ranson_score: number | null;
   mortality_risk: string | null;
-  criteria: OrderItem[];
+  criteria: PankreatitOrderItem[];
 }
 
 /**
  * Интерфейс фильтров заявок
  */
-interface OrderFilters {
+interface PankreatitOrderFilters {
   status?: "draft" | "formed" | "completed" | "rejected";
   from_date?: string;
   to_date?: string;
@@ -53,20 +53,20 @@ interface OrderFilters {
 /**
  * Интерфейс состояния заявок
  */
-interface OrdersState {
-  orders: Order[];
-  currentOrder: Order | null;
+interface PankreatitOrdersState {
+  pankreatitorders: PankreatitOrder[];
+  currentPankreatitOrder: PankreatitOrder | null;
   loading: boolean;
   error: string | null;
-  filters: OrderFilters;
+  filters: PankreatitOrderFilters;
 }
 
 /**
  * Начальное состояние
  */
-const initialState: OrdersState = {
-  orders: [],
-  currentOrder: null,
+const initialState: PankreatitOrdersState = {
+  pankreatitorders: [],
+  currentPankreatitOrder: null,
   loading: false,
   error: null,
   filters: {},
@@ -82,11 +82,11 @@ const getToken = (): string | null => {
 /**
  * Async thunk для получения списка заявок
  */
-export const fetchOrdersAsync = createAsyncThunk<
-  Order[],
-  OrderFilters | undefined,
+export const fetchPankreatitOrdersAsync = createAsyncThunk<
+  PankreatitOrder[],
+  PankreatitOrderFilters | undefined,
   { rejectValue: string }
->("orders/fetchOrders", async (filters = {}, { rejectWithValue }) => {
+>("pankreatitorders/fetchPankreatitOrders", async (filters = {}, { rejectWithValue }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -143,11 +143,11 @@ export const fetchOrdersAsync = createAsyncThunk<
 /**
  * Async thunk для получения заявки по ID
  */
-export const fetchOrderByIdAsync = createAsyncThunk<
-  Order,
+export const fetchPankreatitOrderByIdAsync = createAsyncThunk<
+  PankreatitOrder,
   number,
   { rejectValue: string }
->("orders/fetchOrderById", async (id, { rejectWithValue }) => {
+>("pankreatitorders/fetchPankreatitOrderById", async (id, { rejectWithValue }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -187,7 +187,7 @@ export const fetchOrderByIdAsync = createAsyncThunk<
       }));
     }
     
-    return data as Order;
+    return data as PankreatitOrder;
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.message ||
@@ -200,11 +200,11 @@ export const fetchOrderByIdAsync = createAsyncThunk<
 /**
  * Async thunk для формирования заявки (перевод из draft в formed)
  */
-export const formOrderAsync = createAsyncThunk<
+export const formPankreatitOrderAsync = createAsyncThunk<
   void,
   number,
   { rejectValue: string }
->("orders/formOrder", async (id, { rejectWithValue, dispatch }) => {
+>("pankreatitorders/formPankreatitOrder", async (id, { rejectWithValue, dispatch }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -215,7 +215,7 @@ export const formOrderAsync = createAsyncThunk<
     await apiClient.id.formUpdate({ id });
 
     // Обновляем текущую заявку после формирования (чтобы получить рассчитанный Ranson score)
-    await dispatch(fetchOrderByIdAsync(id));
+    await dispatch(fetchPankreatitOrderByIdAsync(id));
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.message ||
@@ -228,11 +228,11 @@ export const formOrderAsync = createAsyncThunk<
 /**
  * Async thunk для удаления заявки (только для draft)
  */
-export const deleteOrderAsync = createAsyncThunk<
+export const deletePankreatitOrderAsync = createAsyncThunk<
   void,
   number,
   { rejectValue: string }
->("orders/deleteOrder", async (id, { rejectWithValue, dispatch }) => {
+>("pankreatitorders/deletePankreatitOrder", async (id, { rejectWithValue, dispatch }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -243,7 +243,7 @@ export const deleteOrderAsync = createAsyncThunk<
     await apiClient.id.pankreatitordersDelete({ id });
 
     // Обновляем список заявок
-    await dispatch(fetchOrdersAsync());
+    await dispatch(fetchPankreatitOrdersAsync());
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.message ||
@@ -256,11 +256,11 @@ export const deleteOrderAsync = createAsyncThunk<
 /**
  * Async thunk для обновления позиции заявки
  */
-export const updateOrderItemAsync = createAsyncThunk<
+export const updatePankreatitOrderItemAsync = createAsyncThunk<
   void,
   { orderId: number; criterionId: number; data: { position?: number; value_num?: number } },
   { rejectValue: string }
->("orders/updateOrderItem", async ({ orderId, criterionId, data }, { rejectWithValue, dispatch }) => {
+>("pankreatitorders/updatePankreatitOrderItem", async ({ orderId, criterionId, data }, { rejectWithValue, dispatch }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -280,7 +280,7 @@ export const updateOrderItemAsync = createAsyncThunk<
     );
 
     // Обновляем текущую заявку
-    await dispatch(fetchOrderByIdAsync(orderId));
+    await dispatch(fetchPankreatitOrderByIdAsync(orderId));
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.message ||
@@ -293,11 +293,11 @@ export const updateOrderItemAsync = createAsyncThunk<
 /**
  * Async thunk для удаления позиции из заявки
  */
-export const removeOrderItemAsync = createAsyncThunk<
+export const removePankreatitOrderItemAsync = createAsyncThunk<
   void,
   { orderId: number; criterionId: number },
   { rejectValue: string }
->("orders/removeOrderItem", async ({ orderId, criterionId }, { rejectWithValue, dispatch }) => {
+>("pankreatitorders/removePankreatitOrderItem", async ({ orderId, criterionId }, { rejectWithValue, dispatch }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -311,7 +311,7 @@ export const removeOrderItemAsync = createAsyncThunk<
     });
 
     // Обновляем текущую заявку
-    await dispatch(fetchOrderByIdAsync(orderId));
+    await dispatch(fetchPankreatitOrderByIdAsync(orderId));
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.message ||
@@ -324,11 +324,11 @@ export const removeOrderItemAsync = createAsyncThunk<
 /**
  * Async thunk для изменения статуса заявки (модератор)
  */
-export const updateOrderStatusAsync = createAsyncThunk<
+export const updatePankreatitOrderStatusAsync = createAsyncThunk<
   void,
   { id: number; status: "complete" | "reject" },
   { rejectValue: string }
->("orders/updateOrderStatus", async ({ id, status }, { rejectWithValue, dispatch, getState }) => {
+>("pankreatitorders/updatePankreatitOrderStatus", async ({ id, status }, { rejectWithValue, dispatch, getState }) => {
   const token = getToken();
   if (!token) {
     return rejectWithValue("Требуется авторизация");
@@ -352,8 +352,8 @@ export const updateOrderStatusAsync = createAsyncThunk<
     }
 
     // Обновляем список заявок с текущими фильтрами
-    const state = getState() as { orders: OrdersState };
-    await dispatch(fetchOrdersAsync(state.orders.filters));
+    const state = getState() as { pankreatitorders: PankreatitOrdersState };
+    await dispatch(fetchPankreatitOrdersAsync(state.pankreatitorders.filters));
   } catch (error: any) {
     console.error("Ошибка при изменении статуса заявки:", error);
     console.error("Детали ошибки:", {
@@ -381,14 +381,14 @@ export const updateOrderStatusAsync = createAsyncThunk<
 /**
  * Redux slice для заявок
  */
-const ordersSlice = createSlice({
-  name: "orders",
+const pankreatitordersSlice = createSlice({
+  name: "pankreatitorders",
   initialState,
   reducers: {
     /**
      * Установка фильтров
      */
-    setFilters: (state, action: PayloadAction<OrderFilters>) => {
+    setFilters: (state, action: PayloadAction<PankreatitOrderFilters>) => {
       state.filters = action.payload;
     },
     /**
@@ -400,105 +400,105 @@ const ordersSlice = createSlice({
     /**
      * Очистка текущей заявки
      */
-    clearCurrentOrder: (state) => {
-      state.currentOrder = null;
+    clearCurrentPankreatitOrder: (state) => {
+      state.currentPankreatitOrder = null;
     },
     /**
      * Очистка всех заявок
      */
-    clearOrders: (state) => {
-      state.orders = [];
-      state.currentOrder = null;
+    clearPankreatitOrders: (state) => {
+      state.pankreatitorders = [];
+      state.currentPankreatitOrder = null;
       state.filters = {};
     },
   },
   extraReducers: (builder) => {
-    // Fetch Orders
+    // Fetch PankreatitOrders
     builder
-      .addCase(fetchOrdersAsync.pending, (state) => {
+      .addCase(fetchPankreatitOrdersAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOrdersAsync.fulfilled, (state, action) => {
+      .addCase(fetchPankreatitOrdersAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
+        state.pankreatitorders = action.payload;
         state.error = null;
       })
-      .addCase(fetchOrdersAsync.rejected, (state, action) => {
+      .addCase(fetchPankreatitOrdersAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка получения списка заключений";
       });
 
-    // Fetch Order By ID
+    // Fetch PankreatitOrder By ID
     builder
-      .addCase(fetchOrderByIdAsync.pending, (state) => {
+      .addCase(fetchPankreatitOrderByIdAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOrderByIdAsync.fulfilled, (state, action) => {
+      .addCase(fetchPankreatitOrderByIdAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentOrder = action.payload;
+        state.currentPankreatitOrder = action.payload;
         state.error = null;
       })
-      .addCase(fetchOrderByIdAsync.rejected, (state, action) => {
+      .addCase(fetchPankreatitOrderByIdAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка получения заключения";
       });
 
-    // Form Order
+    // Form PankreatitOrder
     builder
-      .addCase(formOrderAsync.pending, (state) => {
+      .addCase(formPankreatitOrderAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(formOrderAsync.fulfilled, (state) => {
+      .addCase(formPankreatitOrderAsync.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
       })
-      .addCase(formOrderAsync.rejected, (state, action) => {
+      .addCase(formPankreatitOrderAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка формирования заключения";
       });
 
-    // Delete Order
+    // Delete PankreatitOrder
     builder
-      .addCase(deleteOrderAsync.pending, (state) => {
+      .addCase(deletePankreatitOrderAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteOrderAsync.fulfilled, (state) => {
+      .addCase(deletePankreatitOrderAsync.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
       })
-      .addCase(deleteOrderAsync.rejected, (state, action) => {
+      .addCase(deletePankreatitOrderAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка удаления заключения";
       });
 
-    // Update Order Status
+    // Update PankreatitOrder Status
     builder
-      .addCase(updateOrderStatusAsync.pending, (state) => {
+      .addCase(updatePankreatitOrderStatusAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateOrderStatusAsync.fulfilled, (state) => {
+      .addCase(updatePankreatitOrderStatusAsync.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
       })
-      .addCase(updateOrderStatusAsync.rejected, (state, action) => {
+      .addCase(updatePankreatitOrderStatusAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка изменения статуса заключения";
       });
   },
 });
 
-export const { setFilters, clearFilters, clearCurrentOrder, clearOrders } = ordersSlice.actions;
+export const { setFilters, clearFilters, clearCurrentPankreatitOrder, clearPankreatitOrders } = pankreatitordersSlice.actions;
 
 // Селекторы
-export const selectOrders = (state: { orders: OrdersState }) => state.orders.orders;
-export const selectCurrentOrder = (state: { orders: OrdersState }) => state.orders.currentOrder;
-export const selectOrdersLoading = (state: { orders: OrdersState }) => state.orders.loading;
-export const selectOrdersError = (state: { orders: OrdersState }) => state.orders.error;
-export const selectOrderFilters = (state: { orders: OrdersState }) => state.orders.filters;
+export const selectPankreatitOrders = (state: { pankreatitorders: PankreatitOrdersState }) => state.pankreatitorders.pankreatitorders;
+export const selectCurrentPankreatitOrder = (state: { pankreatitorders: PankreatitOrdersState }) => state.pankreatitorders.currentPankreatitOrder;
+export const selectPankreatitOrdersLoading = (state: { pankreatitorders: PankreatitOrdersState }) => state.pankreatitorders.loading;
+export const selectPankreatitOrdersError = (state: { pankreatitorders: PankreatitOrdersState }) => state.pankreatitorders.error;
+export const selectPankreatitOrderFilters = (state: { pankreatitorders: PankreatitOrdersState }) => state.pankreatitorders.filters;
 
-export default ordersSlice.reducer;
+export default pankreatitordersSlice.reducer;

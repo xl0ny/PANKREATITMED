@@ -3,17 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Container, Table, Spinner, Alert, Form, Button, Row, Col, Card } from "react-bootstrap";
 import {
-  fetchOrdersAsync,
-  selectOrders,
-  selectOrdersLoading,
-  selectOrdersError,
-  selectOrderFilters,
+  fetchPankreatitOrdersAsync,
+  selectPankreatitOrders,
+  selectPankreatitOrdersLoading,
+  selectPankreatitOrdersError,
+  selectPankreatitOrderFilters,
   setFilters,
-  updateOrderStatusAsync,
-} from "../../store/slices/ordersSlice";
+  updatePankreatitOrderStatusAsync,
+} from "../../store/slices/pankreatitordersSlice";
 import { selectUser } from "../../store/slices/authSlice";
 import { apiClient, updateApiToken } from "../../api/apiClient";
-import "./Orders.css";
+import "./PankreatitOrders.css";
 
 // Функция для форматирования даты в российский формат DD.MM.YYYY
 const formatDateToRU = (date: Date): string => {
@@ -72,24 +72,24 @@ const formatDateInput = (value: string): string => {
   }
 };
 
-const Orders: React.FC = () => {
+const PankreatitOrders: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const orders = useSelector(selectOrders);
-  const loading = useSelector(selectOrdersLoading);
-  const error = useSelector(selectOrdersError);
-  const filters = useSelector(selectOrderFilters);
+  const pankreatitorders = useSelector(selectPankreatitOrders);
+  const loading = useSelector(selectPankreatitOrdersLoading);
+  const error = useSelector(selectPankreatitOrdersError);
+  const filters = useSelector(selectPankreatitOrderFilters);
   const user = useSelector(selectUser);
   const isModerator = user?.isModerator || false;
 
-  // Инициализируем: "Дата с" пустая, "Дата по" - сегодняшняя дата
+  // Инициализируем: "Дата с" и "Дата по" - сегодняшняя дата
   const getInitialFromDate = (): string => {
     if (filters.from_date) {
       // Если есть фильтр, преобразуем из ISO в RU формат
       const date = new Date(filters.from_date);
       return formatDateToRU(date);
     }
-    return ""; // Пустое по умолчанию
+    return getTodayRU(); // Сегодняшняя дата по умолчанию
   };
 
   const getInitialToDate = (): string => {
@@ -109,8 +109,8 @@ const Orders: React.FC = () => {
   const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialLoadRef = useRef(true);
   // Локальная копия данных для плавного обновления без скачков
-  const [localOrders, setLocalOrders] = useState<any[]>([]);
-  const ordersRef = useRef<any[]>([]);
+  const [localPankreatitOrders, setLocalPankreatitOrders] = useState<any[]>([]);
+  const pankreatitordersRef = useRef<any[]>([]);
 
   const prevLoadingRef = useRef(loading);
   
@@ -121,26 +121,27 @@ const Orders: React.FC = () => {
     // 2. Загрузка завершилась (loading изменился с true на false) - это означает ручное обновление/применение фильтров
     const loadingFinished = prevLoadingRef.current && !loading;
     
-    if (localOrders.length === 0 || loadingFinished) {
-      setLocalOrders(orders);
-      ordersRef.current = orders;
+    if (localPankreatitOrders.length === 0 || loadingFinished) {
+      setLocalPankreatitOrders(pankreatitorders);
+      pankreatitordersRef.current = pankreatitorders;
     }
     
     prevLoadingRef.current = loading;
-  }, [orders, loading, localOrders.length]);
+  }, [pankreatitorders, loading, localPankreatitOrders.length]);
 
   // Первоначальная загрузка данных
   useEffect(() => {
-    // При первой загрузке, если нет фильтров, применяем фильтр только с сегодняшней датой в "Дата по"
+    // При первой загрузке, если нет фильтров, применяем фильтр с сегодняшней датой в "Дата с" и "Дата по"
     if (!filters.from_date && !filters.to_date && !filters.status) {
       const todayISO = getTodayISO();
       const initialFilters = {
+        from_date: `${todayISO}T00:00:00`,
         to_date: `${todayISO}T00:00:00`,
       };
       dispatch(setFilters(initialFilters));
-      dispatch(fetchOrdersAsync(initialFilters) as any);
+      dispatch(fetchPankreatitOrdersAsync(initialFilters) as any);
     } else {
-      dispatch(fetchOrdersAsync(filters) as any);
+      dispatch(fetchPankreatitOrdersAsync(filters) as any);
     }
     isInitialLoadRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -177,10 +178,10 @@ const Orders: React.FC = () => {
         });
 
         const data = response.data;
-        const newOrders = Array.isArray(data) ? data : (data as any)?.items || [];
+        const newPankreatitOrders = Array.isArray(data) ? data : (data as any)?.items || [];
         
         // Нормализуем данные так же, как в Redux slice
-        const normalizedOrders = newOrders.map((order: any) => {
+        const normalizedPankreatitOrders = newPankreatitOrders.map((order: any) => {
           const normalizedCriteria = Array.isArray(order.criteria) 
             ? order.criteria.map((item: any) => ({
                 ...item,
@@ -209,8 +210,8 @@ const Orders: React.FC = () => {
         // Обновляем локальное состояние напрямую, без Redux
         // Это не вызовет полную перерисовку компонента
         requestAnimationFrame(() => {
-          setLocalOrders(normalizedOrders);
-          ordersRef.current = normalizedOrders;
+          setLocalPankreatitOrders(normalizedPankreatitOrders);
+          pankreatitordersRef.current = normalizedPankreatitOrders;
         });
       } catch (error) {
         // Игнорируем ошибки при polling, чтобы не мешать пользователю
@@ -261,31 +262,32 @@ const Orders: React.FC = () => {
     }
     
     dispatch(setFilters(newFilters));
-    dispatch(fetchOrdersAsync(newFilters) as any);
+    dispatch(fetchPankreatitOrdersAsync(newFilters) as any);
   };
 
   const handleReset = () => {
     setStatusFilter("");
-    setFromDate(""); // Пустое значение
     setCreatorFilter(""); // Сброс фильтра по создателю
     const todayRU = getTodayRU();
+    setFromDate(todayRU); // Сегодняшняя дата
     setToDate(todayRU); // Сегодняшняя дата
     const todayISO = getTodayISO();
     const resetFilters = {
+      from_date: `${todayISO}T00:00:00`,
       to_date: `${todayISO}T00:00:00`,
     };
     dispatch(setFilters(resetFilters));
-    dispatch(fetchOrdersAsync(resetFilters) as any);
+    dispatch(fetchPankreatitOrdersAsync(resetFilters) as any);
   };
 
   const handleStatusChange = async (orderId: number, status: "complete" | "reject") => {
     setUpdatingStatusId(orderId);
     try {
       console.log(`[handleStatusChange] Изменение статуса заявки ${orderId} на ${status}`);
-      const result = await dispatch(updateOrderStatusAsync({ id: orderId, status }) as any);
+      const result = await dispatch(updatePankreatitOrderStatusAsync({ id: orderId, status }) as any);
       
       // Проверяем, была ли ошибка
-      if (updateOrderStatusAsync.rejected.match(result)) {
+      if (updatePankreatitOrderStatusAsync.rejected.match(result)) {
         const errorMessage = result.payload || "Ошибка изменения статуса";
         alert(`Ошибка: ${errorMessage}`);
       } else {
@@ -327,61 +329,61 @@ const Orders: React.FC = () => {
   };
 
   // Находим последнюю завершенную заявку
-  const lastCompletedOrder = useMemo(() => {
-    const completedOrders = localOrders.filter(order => order.status === "completed");
-    if (completedOrders.length === 0) return null;
+  const lastCompletedPankreatitOrder = useMemo(() => {
+    const completedPankreatitOrders = localPankreatitOrders.filter(order => order.status === "completed");
+    if (completedPankreatitOrders.length === 0) return null;
     
     // Сортируем по дате завершения (finished_at) или дате формирования (formed_at), если finished_at нет
-    const sorted = completedOrders.sort((a, b) => {
+    const sorted = completedPankreatitOrders.sort((a, b) => {
       const dateA = a.finished_at || a.formed_at || "";
       const dateB = b.finished_at || b.formed_at || "";
       return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
     
     return sorted[0];
-  }, [localOrders]);
+  }, [localPankreatitOrders]);
 
   // Получаем уникальные creator_id из загруженных заявок
   const uniqueCreators = useMemo(() => {
     const creatorIds = new Set<number>();
-    localOrders.forEach((order) => {
+    localPankreatitOrders.forEach((order) => {
       if (order.creator_id) {
         creatorIds.add(order.creator_id);
       }
     });
     return Array.from(creatorIds).sort((a, b) => a - b);
-  }, [localOrders]);
+  }, [localPankreatitOrders]);
 
   // Фильтрация заявок по создателю на фронтенде
-  const filteredOrders = useMemo(() => {
+  const filteredPankreatitOrders = useMemo(() => {
     if (!creatorFilter || creatorFilter === "") {
-      return localOrders;
+      return localPankreatitOrders;
     }
     const creatorId = parseInt(creatorFilter);
-    return localOrders.filter((order) => order.creator_id === creatorId);
-  }, [localOrders, creatorFilter]);
+    return localPankreatitOrders.filter((order) => order.creator_id === creatorId);
+  }, [localPankreatitOrders, creatorFilter]);
 
   return (
-    <Container className="orders-page">
+    <Container className="pankreatitorders-page">
       <h2 className="mb-4">{isModerator ? "Все заключения" : "Мои заключения"}</h2>
 
       {/* Балл по шкале Рэнсона из последней завершенной заявки (только для обычных пользователей) */}
-      {!isModerator && lastCompletedOrder && lastCompletedOrder.ranson_score !== null && (
+      {!isModerator && lastCompletedPankreatitOrder && lastCompletedPankreatitOrder.ranson_score !== null && (
         <div className="text-center mb-2">
           <p className="score-text" style={{ fontSize: "1.1rem" }}>
-            Ваш текущий балл по шкале Рэнсона - <strong>{lastCompletedOrder.ranson_score}</strong>
+            Ваш текущий балл по шкале Рэнсона - <strong>{lastCompletedPankreatitOrder.ranson_score}</strong>
           </p>
         </div>
       )}
 
       {/* Летальный исход из последней завершенной заявки (только для обычных пользователей) */}
-      {!isModerator && lastCompletedOrder && lastCompletedOrder.mortality_risk && (
+      {!isModerator && lastCompletedPankreatitOrder && lastCompletedPankreatitOrder.mortality_risk && (
         <div className="text-center mb-4">
           <p className="risk-text" style={{ fontSize: "1.1rem" }}>
             Летальный исход - <strong>
-              {lastCompletedOrder.mortality_risk.endsWith("%") 
-                ? lastCompletedOrder.mortality_risk 
-                : `${lastCompletedOrder.mortality_risk}%`}
+              {lastCompletedPankreatitOrder.mortality_risk.endsWith("%") 
+                ? lastCompletedPankreatitOrder.mortality_risk 
+                : `${lastCompletedPankreatitOrder.mortality_risk}%`}
             </strong>
           </p>
         </div>
@@ -480,11 +482,11 @@ const Orders: React.FC = () => {
         <Alert variant="danger">{error}</Alert>
       )}
 
-      {!loading && !error && filteredOrders.length === 0 && (
+      {!loading && !error && filteredPankreatitOrders.length === 0 && (
         <Alert variant="info">Заключения не найдены</Alert>
       )}
 
-      {!loading && !error && filteredOrders.length > 0 && (
+      {!loading && !error && filteredPankreatitOrders.length > 0 && (
         <Table striped bordered hover responsive>
           <thead>
             <tr>
@@ -500,7 +502,7 @@ const Orders: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((order) => (
+            {filteredPankreatitOrders.map((order) => (
               <tr key={order.id}>
                 <td>{order.id}</td>
                 {isModerator && <td>ID: {order.creator_id}</td>}
@@ -517,7 +519,7 @@ const Orders: React.FC = () => {
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => navigate(`/orders/${order.id}`)}
+                    onClick={() => navigate(`/pankreatitorders/${order.id}`)}
                   >
                     Просмотр
                   </Button>
@@ -565,4 +567,4 @@ const Orders: React.FC = () => {
   );
 };
 
-export default Orders;
+export default PankreatitOrders;
