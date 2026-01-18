@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+## PANKREATITMED frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Данный репозиторий содержит клиентскую часть веб-приложения (SPA), реализующую пользовательский интерфейс системы для работы с заявками на диагностику панкреатита.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📌 Назначение проекта
 
-## React Compiler
+Frontend предназначен для взаимодействия пользователей с системой и обеспечивает:
+- просмотр и выбор критериев диагностики,
+- создание и управление заявками (pankreatitorders),
+- авторизацию и работу с профилем пользователя,
+- просмотр результатов диагностики и расчетов по шкале Рэнсона,
+- работу модераторов с заявками пользователей.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ⚙️ Реализованный функционал
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Регистрация и аутентификация пользователей  
+- Авторизация на основе ролей (гость, пользователь, модератор)  
+- Просмотр каталога критериев диагностики с фильтрацией  
+- Корзина для формирования заявки (черновик)  
+- Создание, редактирование и удаление заявок  
+- Просмотр детальной информации о заявке  
+- Ввод значений критериев и автоматическая проверка референсных значений  
+- Отображение результатов расчета (балл по шкале Рэнсона, риск летальности)  
+- Фильтрация заявок по статусу, датам и создателю (для модераторов)  
+- Управление статусами заявок модераторами  
+- Автоматическое обновление данных через polling  
+- PWA поддержка для работы в офлайн режиме  
+- Десктопное приложение на базе Tauri  
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠 Используемые технологии
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- React 19  
+- TypeScript  
+- Vite  
+- Redux Toolkit  
+- React Router  
+- React Bootstrap  
+- Axios  
+- Tauri (для десктопного приложения)  
+- Service Worker (PWA)  
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔗 Связанные проекты
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Backend (Go):** https://github.com/xl0ny/PANKREATITMED
+- **Асинхронный сервис (Python FastAPI):** https://github.com/xl0ny/PANKREATITMEDasync
+
+---
+
+## 📄 Документация
+
+- API клиент автоматически генерируется из Swagger спецификации backend  
+- Генерация выполняется командой: `npm run generate-api`  
+
+---
+
+## 🚀 Запуск
+
+### Разработка
+
+# Установка зависимостей
+npm install
+
+# Запуск dev сервера
+npm run dev
+
+# Запуск с указанием базового URL API
+VITE_API_BASE_URL=http://192.168.1.50:80 npm run dev
